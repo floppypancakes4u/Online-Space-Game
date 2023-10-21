@@ -26,7 +26,6 @@ export class Actor {
   }
 
   draw(ctx, panX, panY) {
-    console.log('stuff:', ctx, panX, panY);
     ctx.beginPath();
     ctx.arc(this.x - panX, this.y - panY, this.size, 0, 2 * Math.PI, false);
     ctx.fillStyle = this.color;

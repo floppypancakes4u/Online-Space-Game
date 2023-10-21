@@ -7,7 +7,7 @@ import {
 import { SectorManager } from './sectors.js';
 import { Actor, Planet, Asteroid, Spaceship, actors } from './actors.js';
 
-const ASTEROID_COUNT = 10;
+const ASTEROID_COUNT = 100;
 
 export function initGame() {
   // Main canvas setup

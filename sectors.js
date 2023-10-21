@@ -1,8 +1,8 @@
 export let sectors = [];
 
 const sectorDefaultSize = 2500;
-const MAX_ACTOR_PER_SECTOR = 25;
-const MINIMUM_SUBDIVIDE_SIZE = 500;
+const MAX_ACTOR_PER_SECTOR = 15;
+const MINIMUM_SUBDIVIDE_SIZE = 250;
 
 var SM = null;
 
@@ -164,6 +164,10 @@ export class Sector {
 
     this.borderColor = this.randomColor();
     this.isHovered = false;
+  }
+
+  shouldDraw() {
+    return this.children.length == 0;
   }
 
   isWithinBounds(actor) {
@@ -358,8 +362,6 @@ export class Sector {
 
   update() {
     for (const [key, actor] of this.actors) {
-      // Using the default iterator (could be `map.entries()` instead)
-      //console.log(`The value for key ${key} is ${actor}`);
       actor.update();
     }
   }

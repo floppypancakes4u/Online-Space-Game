@@ -18,7 +18,6 @@ let lastMouseX, lastMouseY;
 let zoomFactor = 1.0;
 
 export function setCanvasSize() {
-  console.log('zoom: ', zoomFactor);
   canvas.width = window.innerWidth / zoomFactor;
   canvas.height = window.innerHeight / zoomFactor;
   drawGrid();
@@ -40,22 +39,18 @@ export function drawGrid() {
 
   for (let x = 0; x <= canvas.width; x += gridSize) {
     ctx.beginPath();
-    ctx.moveTo(x - (panX % gridSize), 0);
-    ctx.lineTo(x - (panX % gridSize), canvas.height);
+    const adjustedX = x - (panX % gridSize) + gridSize / 2 - 1;
+    ctx.moveTo(adjustedX, 0);
+    ctx.lineTo(adjustedX, canvas.height);
     ctx.stroke();
   }
 
   for (let y = 0; y <= canvas.height; y += gridSize) {
     ctx.beginPath();
-    ctx.moveTo(0, y - (panY % gridSize));
-    ctx.lineTo(canvas.width, y - (panY % gridSize));
+    const adjustedY = y - (panY % gridSize) + gridSize / 2 - 1;
+    ctx.moveTo(0, adjustedY);
+    ctx.lineTo(canvas.width, adjustedY);
     ctx.stroke();
-  }
-
-  // Draw all actors
-  for (let actor of actors) {
-    console.log('drawing');
-    actor.draw();
   }
 
   // Draw the targeting reticle and dotted line
@@ -85,6 +80,10 @@ export function drawGrid() {
     //sector.drawBorder();
     drawBorder(sector, sector.isHovered);
     sector.drawSectorInfo(ctx, panX, panY); // Ensure this is after actor.draw()
+
+    for (const [key, actor] of sector.actors) {
+      actor.draw(ctx, panX, panY);
+    }
   }
 
   drawnSectors.clear();
@@ -261,16 +260,25 @@ function adjustColor(color, factor) {
 }
 
 function drawBorder(sector, isHovered) {
-  if (drawnSectors.has(sector)) {
-    ctx.strokeStyle = adjustColor(sector.borderColor, 0.8);
-  } else {
-    ctx.strokeStyle = isHovered
-      ? adjustColor(sector.borderColor, 1.5)
-      : sector.borderColor;
-    drawnSectors.add(sector);
+  if (sector.shouldDraw()) {
+    if (drawnSectors.has(sector)) {
+      ctx.strokeStyle = adjustColor(sector.borderColor, 0.8);
+    } else {
+      ctx.strokeStyle = isHovered
+        ? adjustColor(sector.borderColor, 1.5)
+        : sector.borderColor;
+      drawnSectors.add(sector);
+    }
+    ctx.lineWidth = 2;
+
+    // Adjusted to draw the rectangle 1 pixel smaller on each side
+    ctx.strokeRect(
+      sector.x - panX + 1, // Increase X position by 1
+      sector.y - panY + 1, // Increase Y position by 1
+      sector.width - 2, // Decrease width by 2
+      sector.height - 2 // Decrease height by 2
+    );
   }
-  ctx.lineWidth = 2;
-  ctx.strokeRect(sector.x - panX, sector.y - panY, sector.width, sector.height);
 }
 
 export function update() {
@@ -284,10 +292,10 @@ export function update() {
 
     sector.recombine();
   }
+  drawGrid();
 }
 
 export function canvasRenderLoop() {
-  drawGrid();
   update();
   window.requestAnimationFrame(canvasRenderLoop);
 }
