@@ -1,8 +1,9 @@
-import { actors, Asteroid } from './actors.js';
+//import { actors, Asteroid } from './actors.js';
+import { Asteroid } from './actors.js';
 
 export let sectors = [];
 
-const sectorDefaultSize = 2500;
+const sectorDefaultSize = 2050;
 const MAX_ACTOR_PER_SECTOR = 15;
 const MINIMUM_SUBDIVIDE_SIZE = 250;
 
@@ -27,7 +28,23 @@ export class SectorManager {
         (Math.random() + 0.5) / 1000
       );
       SectorManager.addActor(asteroid);
-      actors.push(asteroid);
+      //actors.push(asteroid);
+    }
+  }
+
+  reduceDebugAsteroids() {
+    let totalRemoved = 0;
+    for (let i = 100; i > 0; i--) {
+      for (let sector of sectors) {
+        for (let [key, actor] of sector.actors) {
+          if (actor instanceof Asteroid) {
+            SectorManager.destroyActor(actor);
+            totalRemoved++;
+          }
+
+          if (totalRemoved >= 100) return;
+        }
+      }
     }
   }
 
@@ -47,7 +64,12 @@ export class SectorManager {
       }
     }
 
-    actors.push(actor);
+    //actors.push(actor);
+  }
+
+  static destroyActor(actor) {
+    actor.currentSector.destroyActor(actor);
+    //actors = actors.filter(element => element !== actor);
   }
 
   static sectorExistsAt(x, y, width, height) {
@@ -71,99 +93,6 @@ export class SectorManager {
       }
     }
     return null;
-  }
-
-  static needsExpansion() {
-    const buffer = 100; // Distance from the edge to trigger expansion
-    for (let actor of actors) {
-      for (let sector of sectors) {
-        if (
-          actor.x - sector.x < buffer ||
-          sector.x + sector.width - actor.x < buffer ||
-          actor.y - sector.y < buffer ||
-          sector.y + sector.height - actor.y < buffer
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  static expandUniverse() {
-    const newSectors = [];
-    for (let sector of sectors) {
-      // Check and create new sectors around the existing sector if they don't exist
-      if (
-        !this.sectorExistsAt(
-          sector.x - sector.width,
-          sector.y,
-          sector.width,
-          sector.height
-        )
-      ) {
-        newSectors.push(
-          new Sector(
-            sector.x - sector.width,
-            sector.y,
-            sector.width,
-            sector.height
-          )
-        ); // Left
-      }
-      if (
-        !this.sectorExistsAt(
-          sector.x + sector.width,
-          sector.y,
-          sector.width,
-          sector.height
-        )
-      ) {
-        newSectors.push(
-          new Sector(
-            sector.x + sector.width,
-            sector.y,
-            sector.width,
-            sector.height
-          )
-        ); // Right
-      }
-      if (
-        !this.sectorExistsAt(
-          sector.x,
-          sector.y - sector.height,
-          sector.width,
-          sector.height
-        )
-      ) {
-        newSectors.push(
-          new Sector(
-            sector.x,
-            sector.y - sector.height,
-            sector.width,
-            sector.height
-          )
-        ); // Top
-      }
-      if (
-        !this.sectorExistsAt(
-          sector.x,
-          sector.y + sector.height,
-          sector.width,
-          sector.height
-        )
-      ) {
-        newSectors.push(
-          new Sector(
-            sector.x,
-            sector.y + sector.height,
-            sector.width,
-            sector.height
-          )
-        ); // Bottom
-      }
-    }
-    sectors = sectors.concat(newSectors);
   }
 }
 
@@ -195,128 +124,13 @@ export class Sector {
     );
   }
 
-  // shouldRecombine() {
-  //   if (this.children.length === 0) return false; // We don't have any child sectors. Ignore this.
-  //   return this.combinedChildActorCount() < MAX_ACTOR_PER_SECTOR / 2;
-  // }
-
-  // recombine() {
-  //   if (!this.shouldRecombine()) return;
-
-  //   // Move all actors from child sectors to the parent sector
-  //   for (let child of this.children) {
-  //     for (const [actorName, actor] of child.actors) {
-  //       this.actors.set(actorName, actor);
-  //       actor.currentSector = this; // Update the actor's current sector
-  //     }
-  //     child.actors.clear();
-
-  //     // Remove child from the sectors array
-  //     const index = sectors.indexOf(child);
-  //     if (index > -1) {
-  //       sectors.splice(index, 1);
-  //     }
-  //   }
-  //   // Clear the child sectors
-  //   this.children = [];
-  // }
-
-  // addActor(actor) {
-  //   // If the sector has children, delegate the addition of the actor to the child sectors
-  //   if (this.children.length > 0) {
-  //     for (let child of this.children) {
-  //       if (child.isWithinBounds(actor)) {
-  //         child.addActor(actor);
-  //         return; // Ensure the actor is added to only one child sector
-  //       }
-  //     }
-  //     return; // If the actor doesn't fit in any child, don't add it to this sector either
-  //   }
-
-  //   // If the sector doesn't have children, proceed with the current logic
-  //   if (this.actors.size < MAX_ACTOR_PER_SECTOR) {
-  //     this.actors.set(actor.name, actor);
-  //   } else if (
-  //     this.width > MINIMUM_SUBDIVIDE_SIZE &&
-  //     this.height > MINIMUM_SUBDIVIDE_SIZE
-  //   ) {
-  //     // Subdivide if necessary
-  //     if (this.children.length === 0) {
-  //       this.subdivide();
-  //     }
-  //     // After subdividing, try adding the actor to the child sectors
-  //     this.addActor(actor);
-  //   } else {
-  //     this.actors.set(actor.name, actor);
-  //   }
-  // }
-
   addActor(actor) {
-    // // If the sector has children, delegate the addition of the actor to the child sectors
-    // if (this.children.length > 0) {
-    //   for (let child of this.children) {
-    //     if (child.isWithinBounds(actor)) {
-    //       child.addActor(actor);
-    //       return; // Ensure the actor is added to only one child sector
-    //     }
-    //   }
-    //   return; // If the actor doesn't fit in any child, don't add it to this sector either
-    // }
-
-    // // If the sector doesn't have children, proceed with the current logic
-    // if (this.actors.size < MAX_ACTOR_PER_SECTOR) {
-    //   this.actors.set(actor.name, actor);
-    // } else if (
-    //   this.width > MINIMUM_SUBDIVIDE_SIZE &&
-    //   this.height > MINIMUM_SUBDIVIDE_SIZE
-    // ) {
-    //   // Subdivide if necessary
-    //   if (this.children.length === 0) {
-    //     this.subdivide();
-    //   }
-    //   // After subdividing, try adding the actor to the child sectors
-    //   this.addActor(actor);
-    // } else {
     this.actors.set(actor.name, actor);
-    //}
   }
 
-  // combinedChildActorCount() {
-  //   return this.children.reduce((total, child) => total + child.actors.size, 0);
-  // }
-
-  // subdivide() {
-  //   const halfWidth = this.width / 2;
-  //   const halfHeight = this.height / 2;
-  //   this.children.push(new Sector(this.x, this.y, halfWidth, halfHeight));
-  //   this.children.push(
-  //     new Sector(this.x + halfWidth, this.y, halfWidth, halfHeight)
-  //   );
-  //   this.children.push(
-  //     new Sector(this.x, this.y + halfHeight, halfWidth, halfHeight)
-  //   );
-  //   this.children.push(
-  //     new Sector(this.x + halfWidth, this.y + halfHeight, halfWidth, halfHeight)
-  //   );
-
-  //   // Move actors to the appropriate child sector
-  //   for (const [actorName, actor] of this.actors) {
-  //     for (let child of this.children) {
-  //       if (child.isWithinBounds(actor)) {
-  //         child.addActor(actor);
-  //         break; // Ensure the actor is added to only one child sector
-  //       }
-  //     }
-  //   }
-
-  //   // Clear the actors from the current sector
-  //   this.actors.clear();
-
-  //   // Add child sectors to the sectors array
-  //   for (let child of this.children) {
-  //     sectors.push(child);
-  //   }
-  // }
+  destroyActor(actor) {
+    this.actors.delete(actor.name);
+  }
 
   getNeighboringActors() {
     // This method should return actors from neighboring sectors.

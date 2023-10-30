@@ -25,6 +25,16 @@ export class Actor {
     return dx * dx + dy * dy <= this.size * this.size;
   }
 
+  isVisible(canvasWidth, canvasHeight, panX, panY) {
+    const left = this.x - this.size - panX;
+    const right = this.x + this.size - panX;
+    const top = this.y - this.size - panY;
+    const bottom = this.y + this.size - panY;
+
+    // Check if any part of the actor is within the bounds of the canvas
+    return left < canvasWidth && right > 0 && top < canvasHeight && bottom > 0;
+  }
+
   draw(ctx, panX, panY) {
     ctx.beginPath();
     ctx.arc(this.x - panX, this.y - panY, this.size, 0, 2 * Math.PI, false);
@@ -243,4 +253,4 @@ export class Spaceship extends Actor {
   }
 }
 
-export const actors = []; // Array to store all actors
+export var actors = []; // Array to store all actors

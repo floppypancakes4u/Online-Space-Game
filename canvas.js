@@ -3,12 +3,15 @@ import { sectors } from './sectors.js';
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const coordDisplay = document.getElementById('coordinates');
+const actorDisplay = document.getElementById('actors');
 const minZoom = 0.05;
 const maxZoom = 1.0;
 
 let target = null;
-let actors = [];
 let drawnSectors = new Set();
+var totalActors = 0;
+let visibleActors = 0;
+let culledActors = 0;
 let gridSize = 50;
 let panX = 0;
 let panY = 0;
@@ -70,11 +73,8 @@ export function drawGrid() {
     }
   }
 
-  // // Draw all actors
-  // for (let actor of actors) {
-  //   actor.draw(ctx, panX, panY);
-  // }
-
+  totalActors = 0;
+  visibleActors = 0;
   // Draw sector borders and information
   for (let sector of sectors) {
     //sector.drawBorder();
@@ -82,7 +82,12 @@ export function drawGrid() {
     sector.drawSectorInfo(ctx, panX, panY); // Ensure this is after actor.draw()
 
     for (const [key, actor] of sector.actors) {
-      actor.draw(ctx, panX, panY);
+      if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
+        actor.draw(ctx, panX, panY);
+        visibleActors++
+      }
+
+      totalActors++;
     }
   }
 
@@ -138,13 +143,13 @@ export function mouseMove(e) {
   //drawGrid();
 
   // Draw target reticle on mouse over
-  target = null;
-  for (let actor of actors) {
-    target = checkActorAndDescendants(actor, mouseX, mouseY);
-    if (target) {
-      break;
-    }
-  }
+  // target = null;
+  // for (let actor of actors) {
+  //   target = checkActorAndDescendants(actor, mouseX, mouseY);
+  //   if (target) {
+  //     break;
+  //   }
+  // }
 
   for (let sector of sectors) {
     sector.isHovered = sector.isMouseWithin(mouseX, mouseY, panX, panY);
@@ -294,9 +299,14 @@ export function update() {
     //sector.recombine();
   }
   drawGrid();
+
+  // Update Dev stuff
+  actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`
 }
 
 export function canvasRenderLoop() {
   update();
   window.requestAnimationFrame(canvasRenderLoop);
 }
+
+coordDisplay.textContent = `X: 0, Y: 0`;
