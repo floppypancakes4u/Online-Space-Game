@@ -4,15 +4,15 @@ import {
   canvasRenderLoop,
   initEventListeners,
 } from './canvas.js';
-import { SectorManager } from './sectors.js';
+import { SM, SectorManager } from './sectors.js';
 import { Actor, Planet, Asteroid, Spaceship, actors } from './actors.js';
 
 const ASTEROID_COUNT = 100;
-
 export function initGame() {
   // Main canvas setup
   setCanvasSize();
   window.addEventListener('resize', setCanvasSize);
+
   initEventListeners();
 
   // Initialize sectors
@@ -22,7 +22,7 @@ export function initGame() {
   // Generate Solar Bodies
   let sun = new Actor(0, 0, 50, 'yellow');
   SectorManager.addActor(sun);
-  actors.push(sun);
+  //actors.push(sun);
 
   let planetColors = ['blue', 'green', 'red', 'purple', 'white'];
   for (let i = 0; i < 5; i++) {
@@ -54,17 +54,30 @@ export function initGame() {
       (Math.random() + 0.5) / 1000
     );
     SectorManager.addActor(asteroid);
-    actors.push(asteroid);
+    //actors.push(asteroid);
   }
 
   // Remove the existing spaceship and create a new Spaceship instance
   let spaceship = new Spaceship(100, 0, 15, 'cyan');
   SectorManager.addActor(spaceship);
-  actors.push(spaceship);
+  //actors.push(spaceship);
 
   // Generate random target for the spaceship
   spaceship.findRandomTarget();
   spaceship.isMoving = true;
+
+  // DEV Controls
+  const slider = document.getElementById('asteroidSlider');
+  const sliderValueDisplay = document.getElementById('sliderValue');
+
+  slider.addEventListener('input', () => {
+    sliderValueDisplay.textContent = slider.value;
+  });
+
+  document.getElementById('spawnAsteroids').addEventListener('click', () => {
+    const sliderValue = parseInt(slider.value, 10);
+    SM.spawnDebugAsteroids(sun, sliderValue);
+  });
 
   // Start the game loop
   window.requestAnimationFrame(canvasRenderLoop);

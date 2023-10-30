@@ -95,6 +95,7 @@ export function initEventListeners() {
   canvas.addEventListener('mousemove', mouseMove);
   canvas.addEventListener('mousedown', mouseDown);
   canvas.addEventListener('mouseup', mouseUp);
+  
 
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -290,7 +291,7 @@ export function update() {
     //   actor.update();
     // }
 
-    sector.recombine();
+    //sector.recombine();
   }
   drawGrid();
 }

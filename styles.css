@@ -6,16 +6,52 @@ body {
 }
 
 #coordinates {
-  position: absolute;
+  position: relative; /* or absolute, depending on your needs */
   top: 10px;
   left: 10px;
-  color: #fff; /* Change color to be visible on black background */
+  color: #fff;
   z-index: 10;
 }
+
 
 canvas {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 0;
+}
+
+.admin-controls {
+  position: relative;
+  z-index: 10; /* Ensure it's above the canvas */
+  width: 250px;
+  background-color: rgb(51, 51, 51);
+  border: 2px solid #555;
+  padding: 10px;
+  box-sizing: border-box;
+  color: white;
+}
+
+
+.admin-controls > div {
+  margin-bottom: 10px;
+  padding: 5px;
+  border-bottom: 1px solid #555;
+  background-color: rgba(51, 51, 51, 1); /* Ensure child divs also have a solid background */
+}
+
+.admin-controls > div:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+#asteroidSlider {
+  width: 100px;
+  vertical-align: middle;
+  margin: 0 10px; /* Add some space around the slider */
+}
+
+#sliderValue {
+  vertical-align: middle; /* Align with the button and slider */
+  color: white; /* Set text color */
 }
