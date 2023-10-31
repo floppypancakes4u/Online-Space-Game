@@ -4,7 +4,8 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const coordDisplay = document.getElementById('coordinates');
 const actorDisplay = document.getElementById('actors');
-const minZoom = 0.05;
+const zoomLevel = document.getElementById('zoom');
+const minZoom = 0.1;
 const maxZoom = 1.0;
 
 let target = null;
@@ -27,11 +28,6 @@ export function setCanvasSize() {
 }
 
 export function drawGrid() {
-  const scaledCanvasWidth = canvas.width * zoomFactor;
-  const scaledCanvasHeight = canvas.height * zoomFactor;
-
-  ctx.clearRect(0, 0, scaledCanvasWidth, scaledCanvasHeight);
-
   ctx.save();
 
   // Apply zoom transformation
@@ -40,25 +36,47 @@ export function drawGrid() {
 
   ctx.strokeStyle = 'lightgrey'; // change grid line color to light grey
 
-  // Adjust grid size based on zoom level to reduce the number of lines drawn at higher zoom out levels
+  // ctx.beginPath();
+  // for (let x = 0; x <= canvas.width; x += gridSize) {
+  //   const adjustedX = x - (panX % gridSize) + gridSize / 2 - 1;
+  //   ctx.moveTo(adjustedX, 0);
+  //   ctx.lineTo(adjustedX, canvas.height);
+  // }
+  // //ctx.stroke();
+
+  // for (let y = 0; y <= canvas.height; y += gridSize) {
+  //   //ctx.beginPath();
+  //   const adjustedY = y - (panY % gridSize) + gridSize / 2 - 1;
+  //   ctx.moveTo(0, adjustedY);
+  //   ctx.lineTo(canvas.width, adjustedY);
+  // }
+  // ctx.stroke();
+
   const dynamicGridSize = gridSize * Math.ceil(1 / zoomFactor);
 
-  for (let x = 0 * dynamicGridSize; x <= canvas.width; x += dynamicGridSize) {
-    ctx.beginPath();
-    const adjustedX = x - (panX % dynamicGridSize) + dynamicGridSize / 2 - 1;
+  ctx.beginPath();
+  for (
+    let x = -panX % dynamicGridSize;
+    x <= canvas.width / zoomFactor;
+    x += dynamicGridSize
+  ) {
+    const adjustedX = x + dynamicGridSize / 2 - 1;
     ctx.moveTo(adjustedX, 0);
-    ctx.lineTo(adjustedX, canvas.height);
-    ctx.stroke();
+    ctx.lineTo(adjustedX, canvas.height / zoomFactor);
   }
 
-  for (let y = 0 * dynamicGridSize; y <= canvas.height; y += dynamicGridSize) {
-    ctx.beginPath();
-    const adjustedY = y - (panY % dynamicGridSize) + dynamicGridSize / 2 - 1;
+  for (
+    let y = -panY % dynamicGridSize;
+    y <= canvas.height / zoomFactor;
+    y += dynamicGridSize
+  ) {
+    const adjustedY = y + dynamicGridSize / 2 - 1;
     ctx.moveTo(0, adjustedY);
-    ctx.lineTo(canvas.width, adjustedY);
-    ctx.stroke();
+    ctx.lineTo(canvas.width / zoomFactor, adjustedY);
   }
+  ctx.stroke();
 
+  // Example below
   // for (let x = Math.floor(visibleXStart / dynamicGridSize) * dynamicGridSize; x < visibleXEnd; x += dynamicGridSize) {
   //   ctx.beginPath();
   //   const adjustedX = x - (panX % dynamicGridSize) + dynamicGridSize / 2 - 1;
@@ -143,16 +161,19 @@ export function initEventListeners() {
 
 export function mouseMove(e) {
   const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+  const mouseX = (e.clientX - rect.left) / zoomFactor;
+  const mouseY = (e.clientY - rect.top) / zoomFactor;
+
+  // Calculate the world coordinates considering panning
   const worldX = mouseX + panX;
   const worldY = mouseY + panY;
 
-  coordDisplay.textContent = `X: ${worldX}, Y: ${worldY}`;
+  coordDisplay.textContent = `X: ${worldX.toFixed(2)}, Y: ${worldY.toFixed(2)}`;
 
   if (isPanning) {
-    panX += lastMouseX - mouseX;
-    panY += lastMouseY - mouseY;
+    const panSpeed = 1.5; // You can adjust this value to your preference
+    panX += panSpeed * (lastMouseX - mouseX);
+    panY += panSpeed * (lastMouseY - mouseY);
   }
 
   lastMouseX = mouseX;
@@ -320,6 +341,7 @@ export function update() {
 
   // Update Dev stuff
   actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`;
+  zoomLevel.innerHTML = `Zoom: ${zoomFactor}</br>`;
 }
 
 export function canvasRenderLoop() {
