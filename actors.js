@@ -15,7 +15,7 @@ export class Actor {
   }
 
   isInCurrentSector() {
-    return this.currentSector && this.currentSector.isWithinBounds(this);
+    return this.currentSector && this.currentSector.isActorWithinBounds(this);
   }
 
   isUnderCursor(mouseX, mouseY) {

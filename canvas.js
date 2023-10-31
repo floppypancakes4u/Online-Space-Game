@@ -40,21 +40,40 @@ export function drawGrid() {
 
   ctx.strokeStyle = 'lightgrey'; // change grid line color to light grey
 
-  for (let x = 0; x <= canvas.width; x += gridSize) {
+  // Adjust grid size based on zoom level to reduce the number of lines drawn at higher zoom out levels
+  const dynamicGridSize = gridSize * Math.ceil(1 / zoomFactor);
+
+  for (let x = 0 * dynamicGridSize; x <= canvas.width; x += dynamicGridSize) {
     ctx.beginPath();
-    const adjustedX = x - (panX % gridSize) + gridSize / 2 - 1;
+    const adjustedX = x - (panX % dynamicGridSize) + dynamicGridSize / 2 - 1;
     ctx.moveTo(adjustedX, 0);
     ctx.lineTo(adjustedX, canvas.height);
     ctx.stroke();
   }
 
-  for (let y = 0; y <= canvas.height; y += gridSize) {
+  for (let y = 0 * dynamicGridSize; y <= canvas.height; y += dynamicGridSize) {
     ctx.beginPath();
-    const adjustedY = y - (panY % gridSize) + gridSize / 2 - 1;
+    const adjustedY = y - (panY % dynamicGridSize) + dynamicGridSize / 2 - 1;
     ctx.moveTo(0, adjustedY);
     ctx.lineTo(canvas.width, adjustedY);
     ctx.stroke();
   }
+
+  // for (let x = Math.floor(visibleXStart / dynamicGridSize) * dynamicGridSize; x < visibleXEnd; x += dynamicGridSize) {
+  //   ctx.beginPath();
+  //   const adjustedX = x - (panX % dynamicGridSize) + dynamicGridSize / 2 - 1;
+  //   ctx.moveTo(adjustedX, 0);
+  //   ctx.lineTo(adjustedX, canvas.height);
+  //   ctx.stroke();
+  // }
+
+  // for (let y = Math.floor(visibleYStart / dynamicGridSize) * dynamicGridSize; y < visibleYEnd; y += dynamicGridSize) {
+  //   ctx.beginPath();
+  //   const adjustedY = y - (panY % dynamicGridSize) + dynamicGridSize / 2 - 1;
+  //   ctx.moveTo(0, adjustedY);
+  //   ctx.lineTo(canvas.width, adjustedY);
+  //   ctx.stroke();
+  // }
 
   // Draw the targeting reticle and dotted line
   if (target !== null) {
@@ -84,7 +103,7 @@ export function drawGrid() {
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         actor.draw(ctx, panX, panY);
-        visibleActors++
+        visibleActors++;
       }
 
       totalActors++;
@@ -100,7 +119,6 @@ export function initEventListeners() {
   canvas.addEventListener('mousemove', mouseMove);
   canvas.addEventListener('mousedown', mouseDown);
   canvas.addEventListener('mouseup', mouseUp);
-  
 
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -301,7 +319,7 @@ export function update() {
   drawGrid();
 
   // Update Dev stuff
-  actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`
+  actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`;
 }
 
 export function canvasRenderLoop() {

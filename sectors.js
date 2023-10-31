@@ -48,6 +48,51 @@ export class SectorManager {
     }
   }
 
+  static spawnSectorAtCoordinate(x, y) {
+    const baseX = sectors[0].x;
+    const baseY = sectors[0].y;
+
+    const relativeX = x - baseX;
+    const relativeY = y - baseY;
+
+    const sectorX =
+      Math.floor(relativeX / sectorDefaultSize) * sectorDefaultSize + baseX;
+    const sectorY =
+      Math.floor(relativeY / sectorDefaultSize) * sectorDefaultSize + baseY;
+
+    if (
+      !SectorManager.sectorExistsAt(
+        sectorX,
+        sectorY,
+        sectorDefaultSize,
+        sectorDefaultSize
+      )
+    ) {
+      const newSector = new Sector(
+        sectorX,
+        sectorY,
+        sectorDefaultSize,
+        sectorDefaultSize
+      );
+      sectors.push(newSector);
+
+      console.log(`New sector created at [${sectorX}, ${sectorY}]`);
+      return newSector;
+    } else {
+      console.log(`Sector already exists at [${sectorX}, ${sectorY}]`);
+    }
+  }
+
+  static isCoordinateInAnySector(x, y) {
+    for (let sector of sectors) {
+      //if (x >= sector.x && x <= sector.x + sector.width && y >= sector.y && y <= sector.y + sector.height) {
+      if (sector.isLocationWithinBounds(x, y)) {
+        if (!sector.hasChildSectors()) return sector;
+      }
+    }
+    return false;
+  }
+
   static addActor(actor) {
     // If the actor already has a current sector, remove it from that sector
     if (actor.currentSector) {
@@ -55,16 +100,21 @@ export class SectorManager {
       actor.currentSector = null;
     }
 
-    for (let sector of sectors) {
-      if (sector.isWithinBounds(actor)) {
-        sector.addActor(actor);
-        actor.currentSector = sector; // Update the actor's current sector
-        //console.log(`${actor.name} entered ${sector.name}`);
-        break;
-      }
-    }
+    // for (let sector of sectors) {
+    //   if (sector.isActorWithinBounds(actor)) {
+    //     sector.addActor(actor);
+    //     return;
+    //   }
+    // }
 
-    //actors.push(actor);
+    let sector = this.isCoordinateInAnySector(actor.x, actor.y)
+
+    if (sector) {
+      sector.addActor(actor)
+    } else {
+      let newSector = this.spawnSectorAtCoordinate(actor.x, actor.y)
+      newSector.addActor(actor)
+    }
   }
 
   static destroyActor(actor) {
@@ -111,21 +161,37 @@ export class Sector {
   }
 
   shouldDraw() {
-    return this.children.length == 0;
+    return this.hasChildSectors() == 0;
   }
 
-  isWithinBounds(actor) {
+  hasChildSectors() {
+    return this.children.length > 0;
+  }
+
+  isActorWithinBounds(actor) {
+    // return (
+    //   actor.x >= this.x &&
+    //   actor.x <= this.x + this.width &&
+    //   actor.y >= this.y &&
+    //   actor.y <= this.y + this.height &&
+    //   this.children.length == 0
+    // );
+    return this.isLocationWithinBounds(actor.x, actor.y);
+  }
+
+  isLocationWithinBounds(x, y) {
     return (
-      actor.x >= this.x &&
-      actor.x <= this.x + this.width &&
-      actor.y >= this.y &&
-      actor.y <= this.y + this.height &&
+      x >= this.x &&
+      x <= this.x + this.width &&
+      y >= this.y &&
+      y <= this.y + this.height &&
       this.children.length == 0
     );
   }
 
   addActor(actor) {
     this.actors.set(actor.name, actor);
+    actor.currentSector = this;
   }
 
   destroyActor(actor) {
