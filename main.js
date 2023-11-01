@@ -5,11 +5,12 @@ import {
   initEventListeners,
 } from './canvas.js';
 import { SM, SectorManager } from './sectors.js';
-import { Actor, Planet, Asteroid, Spaceship } from './actors.js';
+import { initActors, Actor, Planet, Asteroid, Spaceship } from './actors.js';
 
 const ASTEROID_COUNT = 100;
 export function initGame() {
   // Main canvas setup
+  initActors();
   setCanvasSize();
   window.addEventListener('resize', setCanvasSize);
 

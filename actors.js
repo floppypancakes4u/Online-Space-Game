@@ -1,4 +1,53 @@
 import { SectorManager } from './sectors.js';
+import { savePathData } from './canvas.js';
+
+//let asteroidShapes = generateAsteroidShapes();
+let asteroidShapes = [];
+
+export function initActors() {
+  generateAsteroidShapes();
+}
+
+// Helper function to generate asteroid shapes
+function generateAsteroidShapes() {
+  //const asteroidShapes = new Map();
+  //const asteroidShapes = [];
+  for (let i = 0; i < 50; i++) {
+    const path = new Path2D();
+    const minShade = 25;
+    const shadeRange = 50;
+    const grayShade = minShade + Math.floor(Math.random() * shadeRange);
+    const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+
+    // You might need to adjust the size and shape generation logic here based on your needs
+    const size = 10 + Math.random() * 20; // Example size range: 10 to 30
+    for (let j = 0; j < 10; j++) {
+      let angle = (j / 10) * 2 * Math.PI;
+      let radius = size + (Math.random() * size - size / 2) / 2; // Variate the radius for a jagged appearance
+      let x = radius * Math.cos(angle);
+      let y = radius * Math.sin(angle);
+      if (j === 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.closePath();
+
+    savePathData('Asteroid', i, path, color);
+    //asteroidShapes.set(`asteroidShape-${i}`, { path, color });
+    asteroidShapes.push(i);
+  }
+  //return asteroidShapes;
+}
+
+function getRandomElement(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) {
+    throw new Error('The input must be a non-empty array');
+  }
+  const randomIndex = Math.floor(Math.random() * arr.length);
+  return arr[randomIndex];
+}
 
 export class Actor {
   constructor(x, y, size, color) {
@@ -11,7 +60,7 @@ export class Actor {
     this.children = []; // Other actors that orbit this one
     this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`; // Using the class name and a random number between 0 and 9999
 
-    console.log(`${this.name} created`);
+    //console.log(`${this.name} created`);
   }
 
   isInCurrentSector() {
@@ -97,44 +146,58 @@ export class Planet extends Actor {
 
 export class Asteroid extends Planet {
   constructor(parent, size, orbitRadius, orbitSpeed) {
+    // super(parent, size, 'gray', orbitRadius, orbitSpeed);
+    // this.type = 'Asteroid';
+    // this.path = null; // Property to store the shape's path
     super(parent, size, 'gray', orbitRadius, orbitSpeed);
     this.type = 'Asteroid';
-    this.path = null; // Property to store the shape's path
+    // Assign a random shape from the pre-generated shapes
+    const randomShapeId = getRandomElement(asteroidShapes);
+    this.shapeId = randomShapeId;
+    this.shape = asteroidShapes[randomShapeId];
   }
 
-  generateShape() {
-    const path = new Path2D();
-    const minShade = 25; // Minimum shade value (0-255) for gray color
-    const shadeRange = 50; // Range of shade values (0-255) for gray color
-    const grayShade = minShade + Math.floor(Math.random() * shadeRange); // Random gray shade between minShade and minShade + shadeRange
-    const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-    this.color = color; // Update the asteroid's color
+  // generateShape() {
+  //   const path = new Path2D();
+  //   const minShade = 25; // Minimum shade value (0-255) for gray color
+  //   const shadeRange = 50; // Range of shade values (0-255) for gray color
+  //   const grayShade = minShade + Math.floor(Math.random() * shadeRange); // Random gray shade between minShade and minShade + shadeRange
+  //   const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+  //   this.color = color; // Update the asteroid's color
 
-    for (let i = 0; i < 10; i++) {
-      let angle = (i / 10) * 2 * Math.PI;
-      let radius = this.size + (Math.random() * this.size - this.size / 2) / 2; // Variate the radius for a jagged appearance
-      let x = radius * Math.cos(angle);
-      let y = radius * Math.sin(angle);
-      if (i === 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.closePath();
-    this.path = path; // Save the generated shape's path
-  }
+  //   for (let i = 0; i < 10; i++) {
+  //     let angle = (i / 10) * 2 * Math.PI;
+  //     let radius = this.size + (Math.random() * this.size - this.size / 2) / 2; // Variate the radius for a jagged appearance
+  //     let x = radius * Math.cos(angle);
+  //     let y = radius * Math.sin(angle);
+  //     if (i === 0) {
+  //       path.moveTo(x, y);
+  //     } else {
+  //       path.lineTo(x, y);
+  //     }
+  //   }
+  //   path.closePath();
+  //   this.path = path; // Save the generated shape's path
+  // }
 
-  draw(ctx, panX, panY) {
-    if (!this.path) {
-      this.generateShape();
-    }
-    ctx.save(); // Save the current drawing state
-    ctx.translate(this.x - panX, this.y - panY); // Translate the context to the current position of the asteroid
-    ctx.fillStyle = this.color;
-    ctx.fill(this.path); // Draw the shape using the saved path
-    ctx.restore(); // Restore the previous drawing state
-  }
+  // draw(ctx, panX, panY) {
+  //   ctx.save();
+  //   ctx.translate(this.x - panX, this.y - panY);
+  //   ctx.fillStyle = this.shape.color;
+  //   ctx.fill(this.shape.path);
+  //   ctx.restore();
+  // }
+
+  // draw(ctx, panX, panY) {
+  //   if (!this.path) {
+  //     this.generateShape();
+  //   }
+  //   ctx.save(); // Save the current drawing state
+  //   ctx.translate(this.x - panX, this.y - panY); // Translate the context to the current position of the asteroid
+  //   ctx.fillStyle = this.color;
+  //   ctx.fill(this.path); // Draw the shape using the saved path
+  //   ctx.restore(); // Restore the previous drawing state
+  // }
 
   update() {
     super.update();
