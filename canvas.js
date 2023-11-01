@@ -26,13 +26,13 @@ console.log('canvas');
 
 export function savePathData(instance, id, pathData, color) {
   // Save the original path data
-  saveScaledPathData(instance, id, 1.0, pathData);
+  saveScaledPathData(instance, id, 1.0, pathData, color);
 
   // Create and save scaled copies
-  for (let scale = 0.9; scale >= 0.1; scale -= 0.1) {
-    const scaledPathData = scalePathData(pathData, scale);
-    saveScaledPathData(instance, id, scale, scaledPathData, color);
-  }
+  // for (let scale = 0.9; scale >= 0.1; scale -= 0.1) {
+  //   const scaledPathData = scalePathData(pathData, scale);
+  //   saveScaledPathData(instance, id, scale, scaledPathData, color);
+  // }
 }
 
 function saveScaledPathData(instance, id, scale, path, color) {
