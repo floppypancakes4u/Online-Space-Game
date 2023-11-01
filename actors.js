@@ -8,37 +8,75 @@ export function initActors() {
   generateAsteroidShapes();
 }
 
+function generateAsteroidPoints(size) {
+  const points = [];
+  for (let j = 0; j < 10; j++) {
+    let angle = (j / 10) * 2 * Math.PI;
+    let radius = size + (Math.random() * size - size / 2) / 2;
+    points.push({
+      x: radius * Math.cos(angle),
+      y: radius * Math.sin(angle),
+    });
+  }
+  return points;
+}
+
+function createPathFromPoints(points, scale = 1) {
+  const path = new Path2D();
+  for (let i = 0; i < points.length; i++) {
+    const { x, y } = points[i];
+    if (i === 0) {
+      path.moveTo(x * scale, y * scale);
+    } else {
+      path.lineTo(x * scale, y * scale);
+    }
+  }
+  path.closePath();
+  return path;
+}
 // Helper function to generate asteroid shapes
 function generateAsteroidShapes() {
-  //const asteroidShapes = new Map();
-  //const asteroidShapes = [];
   for (let i = 0; i < 50; i++) {
-    const path = new Path2D();
+    const size = 10 + Math.random() * 20;
+    const asteroidPoints = generateAsteroidPoints(size);
+    //const originalPath = createPathFromPoints(asteroidPoints);
     const minShade = 25;
     const shadeRange = 50;
     const grayShade = minShade + Math.floor(Math.random() * shadeRange);
     const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-
-    // You might need to adjust the size and shape generation logic here based on your needs
-    const size = 10 + Math.random() * 20; // Example size range: 10 to 30
-    for (let j = 0; j < 10; j++) {
-      let angle = (j / 10) * 2 * Math.PI;
-      let radius = size + (Math.random() * size - size / 2) / 2; // Variate the radius for a jagged appearance
-      let x = radius * Math.cos(angle);
-      let y = radius * Math.sin(angle);
-      if (j === 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
+    for (let scale = 1.0; scale >= 0.1; scale -= 0.1) {
+      const scaledPath = createPathFromPoints(asteroidPoints, scale); // Scaled to 50%
+      savePathData('Asteroid', i, scale, scaledPath, color);
     }
-    path.closePath();
 
-    savePathData('Asteroid', i, path, color);
-    //asteroidShapes.set(`asteroidShape-${i}`, { path, color });
     asteroidShapes.push(i);
   }
-  //return asteroidShapes;
+  // for (let i = 0; i < 50; i++) {
+  //   const path = new Path2D();
+  //   const minShade = 25;
+  //   const shadeRange = 50;
+  //   const grayShade = minShade + Math.floor(Math.random() * shadeRange);
+  //   const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+
+  //   // You might need to adjust the size and shape generation logic here based on your needs
+  //   const size = 10 + Math.random() * 20; // Example size range: 10 to 30
+
+  //   for (let j = 0; j < 10; j++) {
+  //     let angle = (j / 10) * 2 * Math.PI;
+  //     let radius = size + (Math.random() * size - size / 2) / 2; // Variate the radius for a jagged appearance
+  //     let x = radius * Math.cos(angle);
+  //     let y = radius * Math.sin(angle);
+  //     if (j === 0) {
+  //       path.moveTo(x, y);
+  //     } else {
+  //       path.lineTo(x, y);
+  //     }
+  //   }
+  //   path.closePath();
+
+  //   savePathData('Asteroid', i, path, color);
+  //   asteroidShapes.push(i);
+  // }
 }
 
 function getRandomElement(arr) {

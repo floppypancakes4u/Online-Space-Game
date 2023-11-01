@@ -24,9 +24,9 @@ let zoomFactor = 1.0;
 const pathDataMap = new Map();
 console.log('canvas');
 
-export function savePathData(instance, id, pathData, color) {
+export function savePathData(instance, id, scale, pathData, color) {
   // Save the original path data
-  saveScaledPathData(instance, id, 1.0, pathData, color);
+  if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
 
   // Create and save scaled copies
   // for (let scale = 0.9; scale >= 0.1; scale -= 0.1) {
@@ -41,17 +41,17 @@ function saveScaledPathData(instance, id, scale, path, color) {
   //console.log(`Path data saved for key: ${key}`, {path, color});
 }
 
-function scalePathData(pathData, scale) {
-  // Assuming pathData is an object with keys that map to arrays of points
-  const scaledPathData = {};
-  for (const [key, points] of Object.entries(pathData)) {
-    scaledPathData[key] = points.map((point) => ({
-      x: point.x * scale,
-      y: point.y * scale,
-    }));
-  }
-  return scaledPathData;
-}
+// function scalePathData(pathData, scale) {
+//   // Assuming pathData is an object with keys that map to arrays of points
+//   const scaledPathData = {};
+//   for (const [key, points] of Object.entries(pathData)) {
+//     scaledPathData[key] = points.map((point) => ({
+//       x: point.x * scale,
+//       y: point.y * scale,
+//     }));
+//   }
+//   return scaledPathData;
+// }
 
 export function drawActor(ctx, actor, panX, panY) {
   if (actor.type === 'Asteroid') {
@@ -62,8 +62,9 @@ export function drawActor(ctx, actor, panX, panY) {
 }
 
 function drawAsteroid(ctx, asteroid, panX, panY) {
-  const scale = 1.0; // Use the appropriate scale for your needs
-  const key = `type-Asteroid-id-${asteroid.shapeId}-scale-${scale.toFixed(2)}`;
+  const key = `type-Asteroid-id-${asteroid.shapeId}-scale-${zoomFactor.toFixed(
+    2
+  )}`;
   const pathData = pathDataMap.get(key);
 
   if (!pathData) {
@@ -72,7 +73,10 @@ function drawAsteroid(ctx, asteroid, panX, panY) {
   }
 
   ctx.save();
-  ctx.translate(asteroid.x - panX, asteroid.y - panY);
+  ctx.translate(
+    (asteroid.x - panX) * zoomFactor,
+    (asteroid.y - panY) * zoomFactor
+  );
   ctx.fillStyle = pathData.color;
   ctx.fill(new Path2D(pathData.path));
   ctx.restore();
@@ -88,67 +92,34 @@ export function drawGrid() {
   ctx.save();
 
   // Apply zoom transformation
-  ctx.scale(zoomFactor, zoomFactor);
+  //ctx.scale(zoomFactor, zoomFactor);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = 'lightgrey'; // change grid line color to light grey
 
-  // ctx.beginPath();
-  // for (let x = 0; x <= canvas.width; x += gridSize) {
-  //   const adjustedX = x - (panX % gridSize) + gridSize / 2 - 1;
-  //   ctx.moveTo(adjustedX, 0);
-  //   ctx.lineTo(adjustedX, canvas.height);
-  // }
-  // //ctx.stroke();
+  // const dynamicGridSize = gridSize * Math.ceil(1 / zoomFactor);
 
-  // for (let y = 0; y <= canvas.height; y += gridSize) {
-  //   //ctx.beginPath();
-  //   const adjustedY = y - (panY % gridSize) + gridSize / 2 - 1;
+  // ctx.beginPath();
+  // for (
+  //   let x = -panX % dynamicGridSize;
+  //   x <= canvas.width / zoomFactor;
+  //   x += dynamicGridSize
+  // ) {
+  //   const adjustedX = x + dynamicGridSize / 2 - 1;
+  //   ctx.moveTo(adjustedX, 0);
+  //   ctx.lineTo(adjustedX, canvas.height / zoomFactor);
+  // }
+
+  // for (
+  //   let y = -panY % dynamicGridSize;
+  //   y <= canvas.height / zoomFactor;
+  //   y += dynamicGridSize
+  // ) {
+  //   const adjustedY = y + dynamicGridSize / 2 - 1;
   //   ctx.moveTo(0, adjustedY);
-  //   ctx.lineTo(canvas.width, adjustedY);
+  //   ctx.lineTo(canvas.width / zoomFactor, adjustedY);
   // }
   // ctx.stroke();
-
-  const dynamicGridSize = gridSize * Math.ceil(1 / zoomFactor);
-
-  ctx.beginPath();
-  for (
-    let x = -panX % dynamicGridSize;
-    x <= canvas.width / zoomFactor;
-    x += dynamicGridSize
-  ) {
-    const adjustedX = x + dynamicGridSize / 2 - 1;
-    ctx.moveTo(adjustedX, 0);
-    ctx.lineTo(adjustedX, canvas.height / zoomFactor);
-  }
-
-  for (
-    let y = -panY % dynamicGridSize;
-    y <= canvas.height / zoomFactor;
-    y += dynamicGridSize
-  ) {
-    const adjustedY = y + dynamicGridSize / 2 - 1;
-    ctx.moveTo(0, adjustedY);
-    ctx.lineTo(canvas.width / zoomFactor, adjustedY);
-  }
-  ctx.stroke();
-
-  // Example below
-  // for (let x = Math.floor(visibleXStart / dynamicGridSize) * dynamicGridSize; x < visibleXEnd; x += dynamicGridSize) {
-  //   ctx.beginPath();
-  //   const adjustedX = x - (panX % dynamicGridSize) + dynamicGridSize / 2 - 1;
-  //   ctx.moveTo(adjustedX, 0);
-  //   ctx.lineTo(adjustedX, canvas.height);
-  //   ctx.stroke();
-  // }
-
-  // for (let y = Math.floor(visibleYStart / dynamicGridSize) * dynamicGridSize; y < visibleYEnd; y += dynamicGridSize) {
-  //   ctx.beginPath();
-  //   const adjustedY = y - (panY % dynamicGridSize) + dynamicGridSize / 2 - 1;
-  //   ctx.moveTo(0, adjustedY);
-  //   ctx.lineTo(canvas.width, adjustedY);
-  //   ctx.stroke();
-  // }
 
   // Draw the targeting reticle and dotted line
   if (target !== null) {
@@ -173,7 +144,7 @@ export function drawGrid() {
   for (let sector of sectors) {
     //sector.drawBorder();
     drawBorder(sector, sector.isHovered);
-    sector.drawSectorInfo(ctx, panX, panY); // Ensure this is after actor.draw()
+    sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
@@ -364,6 +335,12 @@ function adjustColor(color, factor) {
 
 function drawBorder(sector, isHovered) {
   if (sector.shouldDraw()) {
+    const scaledX = (sector.x - panX) * zoomFactor + 1;
+    const scaledY = (sector.y - panY) * zoomFactor + 1;
+    const scaledWidth = sector.width * zoomFactor - 2;
+    const scaledHeight = sector.height * zoomFactor - 2;
+    const scaledLineWidth = 2 * zoomFactor;
+
     if (drawnSectors.has(sector)) {
       ctx.strokeStyle = adjustColor(sector.borderColor, 0.8);
     } else {
@@ -372,15 +349,10 @@ function drawBorder(sector, isHovered) {
         : sector.borderColor;
       drawnSectors.add(sector);
     }
-    ctx.lineWidth = 2;
+    ctx.lineWidth = scaledLineWidth;
 
-    // Adjusted to draw the rectangle 1 pixel smaller on each side
-    ctx.strokeRect(
-      sector.x - panX + 1, // Increase X position by 1
-      sector.y - panY + 1, // Increase Y position by 1
-      sector.width - 2, // Decrease width by 2
-      sector.height - 2 // Decrease height by 2
-    );
+    // Adjusted to draw the rectangle 1 pixel smaller on each side (after scaling)
+    ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
   }
 }
 

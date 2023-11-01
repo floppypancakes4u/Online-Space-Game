@@ -265,23 +265,23 @@ export class Sector {
     return count;
   }
 
-  drawSectorInfo(ctx, panX, panY) {
+  drawSectorInfo(ctx, panX, panY, scale) {
     if (this.children.length > 0) return;
     const neighbors = this.countNeighboringSectors();
     const actorCount = this.actors.size;
 
     ctx.font = '12px Arial';
     ctx.fillStyle = 'white';
-    ctx.fillText(`Sector: ${this.name}`, this.x - panX + 5, this.y - panY + 15);
+    ctx.fillText(`Sector: ${this.name}`, (this.x - panX + 5) * scale, (this.y - panY + 15) * scale);
     ctx.fillText(
       `Actors: ${actorCount}`,
-      this.x - panX + 5,
-      this.y - panY + 30
+      (this.x - panX + 5) * scale,
+      (this.y - panY + 30) * scale
     );
     ctx.fillText(
       `Neighbors: ${neighbors}`,
-      this.x - panX + 5,
-      this.y - panY + 45
+      (this.x - panX + 5) * scale,
+      (this.y - panY + 45) * scale
     ); // Adjusted y position for the second line
   }
 
