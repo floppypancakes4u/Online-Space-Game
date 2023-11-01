@@ -336,11 +336,13 @@ function drawBorder(sector, isHovered) {
   }
 }
 
+const times = [];
+const maxSamples = 100;
 var runTest = false;
+
 setInterval(() => {
   runTest = true;
-  console.log('runTest', runTest);
-}, 1001);
+}, 250);
 
 function measurePerformance(fn) {
   const start = performance.now();
@@ -348,7 +350,22 @@ function measurePerformance(fn) {
   const end = performance.now();
   const time = end - start;
   runTest = false;
-  console.log(`Execution time: ${time} milliseconds`);
+  // Add the execution time to our array
+  times.push(time);
+
+  // If we have more than maxSamples times, remove the oldest one
+  if (times.length > maxSamples) {
+    times.shift();
+  }
+
+  // Calculate average of times
+  const average = times.reduce((a, b) => a + b, 0) / times.length;
+
+  console.log(
+    `Execution time: ${time} milliseconds, Average of last ${maxSamples} checks: ${average.toFixed(
+      2
+    )} milliseconds`
+  );
 }
 
 export function update() {
