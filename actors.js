@@ -1,7 +1,6 @@
 import { SectorManager } from './sectors.js';
 import { savePathData } from './canvas.js';
 
-//let asteroidShapes = generateAsteroidShapes();
 let asteroidShapes = [];
 
 export function initActors() {
@@ -34,49 +33,21 @@ function createPathFromPoints(points, scale = 1) {
   path.closePath();
   return path;
 }
-// Helper function to generate asteroid shapes
 function generateAsteroidShapes() {
   for (let i = 0; i < 50; i++) {
     const size = 10 + Math.random() * 20;
     const asteroidPoints = generateAsteroidPoints(size);
-    //const originalPath = createPathFromPoints(asteroidPoints);
     const minShade = 25;
     const shadeRange = 50;
     const grayShade = minShade + Math.floor(Math.random() * shadeRange);
     const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
     for (let scale = 1.0; scale >= 0.1; scale -= 0.1) {
-      const scaledPath = createPathFromPoints(asteroidPoints, scale); // Scaled to 50%
+      const scaledPath = createPathFromPoints(asteroidPoints, scale);
       savePathData('Asteroid', i, scale, scaledPath, color);
     }
 
     asteroidShapes.push(i);
   }
-  // for (let i = 0; i < 50; i++) {
-  //   const path = new Path2D();
-  //   const minShade = 25;
-  //   const shadeRange = 50;
-  //   const grayShade = minShade + Math.floor(Math.random() * shadeRange);
-  //   const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-
-  //   // You might need to adjust the size and shape generation logic here based on your needs
-  //   const size = 10 + Math.random() * 20; // Example size range: 10 to 30
-
-  //   for (let j = 0; j < 10; j++) {
-  //     let angle = (j / 10) * 2 * Math.PI;
-  //     let radius = size + (Math.random() * size - size / 2) / 2; // Variate the radius for a jagged appearance
-  //     let x = radius * Math.cos(angle);
-  //     let y = radius * Math.sin(angle);
-  //     if (j === 0) {
-  //       path.moveTo(x, y);
-  //     } else {
-  //       path.lineTo(x, y);
-  //     }
-  //   }
-  //   path.closePath();
-
-  //   savePathData('Asteroid', i, path, color);
-  //   asteroidShapes.push(i);
-  // }
 }
 
 function getRandomElement(arr) {
@@ -95,8 +66,8 @@ export class Actor {
     this.color = color;
     this.type = 'Sun';
     this.currentSector = null;
-    this.children = []; // Other actors that orbit this one
-    this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`; // Using the class name and a random number between 0 and 9999
+    this.children = [];
+    this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`;
 
     //console.log(`${this.name} created`);
   }
@@ -106,7 +77,6 @@ export class Actor {
   }
 
   isUnderCursor(mouseX, mouseY) {
-    // Check if the cursor is within the actor's circle
     let dx = mouseX - (this.x - panX);
     let dy = mouseY - (this.y - panY);
     return dx * dx + dy * dy <= this.size * this.size;
@@ -118,7 +88,6 @@ export class Actor {
     const top = this.y - this.size - panY;
     const bottom = this.y + this.size - panY;
 
-    // Check if any part of the actor is within the bounds of the canvas
     return left < canvasWidth && right > 0 && top < canvasHeight && bottom > 0;
   }
 
@@ -128,7 +97,6 @@ export class Actor {
     ctx.fillStyle = this.color;
     ctx.fill();
 
-    // Draw all children
     for (let child of this.children) {
       child.draw(ctx, panX, panY);
     }
@@ -141,7 +109,8 @@ export class Actor {
   }
 
   update() {
-    // Update all children
+    this.customUpdate(); // A method for additional updates specific to the actor type
+
     for (let child of this.children) {
       child.update();
     }
@@ -149,10 +118,14 @@ export class Actor {
     this.movementCheck();
   }
 
+  customUpdate() {
+    // Default implementation does nothing, to be overridden by subclasses
+  }
+
   setPosition(x, y) {
     this.x = x;
     this.y = y;
-    SectorManager.addActor(this); // Update the actor's sector when its position changes
+    SectorManager.addActor(this);
   }
 }
 
@@ -167,7 +140,7 @@ export class Planet extends Actor {
     this.angle = Math.random() * 2 * Math.PI; // Start at a random angle
   }
 
-  update() {
+  customUpdate() {
     // Move in a circle around the parent actor
     this.angle += this.orbitSpeed;
     this.x = this.parent.x + this.orbitRadius * Math.cos(this.angle);
@@ -177,68 +150,16 @@ export class Planet extends Actor {
     for (let child of this.children) {
       child.update();
     }
-
-    super.update();
   }
 }
 
 export class Asteroid extends Planet {
   constructor(parent, size, orbitRadius, orbitSpeed) {
-    // super(parent, size, 'gray', orbitRadius, orbitSpeed);
-    // this.type = 'Asteroid';
-    // this.path = null; // Property to store the shape's path
     super(parent, size, 'gray', orbitRadius, orbitSpeed);
     this.type = 'Asteroid';
-    // Assign a random shape from the pre-generated shapes
     const randomShapeId = getRandomElement(asteroidShapes);
     this.shapeId = randomShapeId;
     this.shape = asteroidShapes[randomShapeId];
-  }
-
-  // generateShape() {
-  //   const path = new Path2D();
-  //   const minShade = 25; // Minimum shade value (0-255) for gray color
-  //   const shadeRange = 50; // Range of shade values (0-255) for gray color
-  //   const grayShade = minShade + Math.floor(Math.random() * shadeRange); // Random gray shade between minShade and minShade + shadeRange
-  //   const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
-  //   this.color = color; // Update the asteroid's color
-
-  //   for (let i = 0; i < 10; i++) {
-  //     let angle = (i / 10) * 2 * Math.PI;
-  //     let radius = this.size + (Math.random() * this.size - this.size / 2) / 2; // Variate the radius for a jagged appearance
-  //     let x = radius * Math.cos(angle);
-  //     let y = radius * Math.sin(angle);
-  //     if (i === 0) {
-  //       path.moveTo(x, y);
-  //     } else {
-  //       path.lineTo(x, y);
-  //     }
-  //   }
-  //   path.closePath();
-  //   this.path = path; // Save the generated shape's path
-  // }
-
-  // draw(ctx, panX, panY) {
-  //   ctx.save();
-  //   ctx.translate(this.x - panX, this.y - panY);
-  //   ctx.fillStyle = this.shape.color;
-  //   ctx.fill(this.shape.path);
-  //   ctx.restore();
-  // }
-
-  // draw(ctx, panX, panY) {
-  //   if (!this.path) {
-  //     this.generateShape();
-  //   }
-  //   ctx.save(); // Save the current drawing state
-  //   ctx.translate(this.x - panX, this.y - panY); // Translate the context to the current position of the asteroid
-  //   ctx.fillStyle = this.color;
-  //   ctx.fill(this.path); // Draw the shape using the saved path
-  //   ctx.restore(); // Restore the previous drawing state
-  // }
-
-  update() {
-    super.update();
   }
 }
 
@@ -278,7 +199,7 @@ export class Spaceship extends Actor {
     this.targetBody = bodies[randomIndex];
   }
 
-  update() {
+  customUpdate() {
     // Apply rotation
     this.rotation %= Math.PI * 2;
 
@@ -315,12 +236,12 @@ export class Spaceship extends Actor {
       }
     }
 
-    // Update all children
-    for (let child of this.children) {
-      child.update();
-    }
+    // // Update all children
+    // for (let child of this.children) {
+    //   child.update();
+    // }
 
-    super.update();
+    // super.update();
   }
 
   draw(ctx, panX, panY) {

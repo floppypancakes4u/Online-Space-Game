@@ -25,39 +25,20 @@ const pathDataMap = new Map();
 console.log('canvas');
 
 export function savePathData(instance, id, scale, pathData, color) {
-  // Save the original path data
   if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
 
-  // Create and save scaled copies
-  // for (let scale = 0.9; scale >= 0.1; scale -= 0.1) {
-  //   const scaledPathData = scalePathData(pathData, scale);
-  //   saveScaledPathData(instance, id, scale, scaledPathData, color);
-  // }
 }
 
 function saveScaledPathData(instance, id, scale, path, color) {
   const key = `type-${instance}-id-${id}-scale-${scale.toFixed(2)}`;
   pathDataMap.set(key, { path, color });
-  //console.log(`Path data saved for key: ${key}`, {path, color});
 }
-
-// function scalePathData(pathData, scale) {
-//   // Assuming pathData is an object with keys that map to arrays of points
-//   const scaledPathData = {};
-//   for (const [key, points] of Object.entries(pathData)) {
-//     scaledPathData[key] = points.map((point) => ({
-//       x: point.x * scale,
-//       y: point.y * scale,
-//     }));
-//   }
-//   return scaledPathData;
-// }
 
 export function drawActor(ctx, actor, panX, panY) {
   if (actor.type === 'Asteroid') {
     drawAsteroid(ctx, actor, panX, panY);
   } else {
-    // Handle other actor types as needed
+    actor.draw()
   }
 }
 
