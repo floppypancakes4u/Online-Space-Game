@@ -26,7 +26,6 @@ console.log('canvas');
 
 export function savePathData(instance, id, scale, pathData, color) {
   if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
-
 }
 
 function saveScaledPathData(instance, id, scale, path, color) {
@@ -38,7 +37,7 @@ export function drawActor(ctx, actor, panX, panY) {
   if (actor.type === 'Asteroid') {
     drawAsteroid(ctx, actor, panX, panY);
   } else {
-    actor.draw()
+    //console.log('need to draw actor: ', actor);
   }
 }
 
@@ -337,7 +336,28 @@ function drawBorder(sector, isHovered) {
   }
 }
 
+var runTest = false;
+setInterval(() => {
+  runTest = true;
+  console.log('runTest', runTest);
+}, 1001);
+
+function measurePerformance(fn) {
+  const start = performance.now();
+  fn();
+  const end = performance.now();
+  const time = end - start;
+  runTest = false;
+  console.log(`Execution time: ${time} milliseconds`);
+}
+
 export function update() {
+  if (runTest) {
+    measurePerformance(drawGrid);
+  } else {
+    drawGrid();
+  }
+
   for (let sector of sectors) {
     sector.update();
     // for (const [key, actor] of sector.actors) {
@@ -348,7 +368,6 @@ export function update() {
 
     //sector.recombine();
   }
-  drawGrid();
 
   // Update Dev stuff
   actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`;
