@@ -5,7 +5,14 @@ import {
   initEventListeners,
 } from './canvas.js';
 import { SM, SectorManager } from './sectors.js';
-import { initActors, Actor, Sun, Planet, Asteroid, Spaceship } from './actors.js';
+import {
+  initActors,
+  Actor,
+  Sun,
+  Planet,
+  Asteroid,
+  Spaceship,
+} from './actors.js';
 
 const ASTEROID_COUNT = 100;
 export function initGame() {
@@ -79,7 +86,7 @@ export function initGame() {
     const sliderValue = parseInt(slider.value, 10);
     SM.spawnDebugAsteroids(sun, sliderValue);
   });
-  
+
   document.getElementById('reduceAsteroids').addEventListener('click', () => {
     SM.reduceDebugAsteroids();
   });

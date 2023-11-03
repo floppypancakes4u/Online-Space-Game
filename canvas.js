@@ -34,11 +34,11 @@ function saveScaledPathData(instance, id, scale, path, color) {
   pathDataMap.set(key, { path, color });
 }
 
-export function drawActor(ctx, actor, panX, panY) {
+export function drawActor(ctx, panX, panY, actor) {
   if (actor instanceof Asteroid) {
-    drawAsteroid(ctx, actor, panX, panY);
+    drawAsteroid(ctx, panX, panY, actor);
   } else {
-    //console.log('need to draw actor: ', actor);
+    drawSun(ctx, panX, panY, actor);
   }
 }
 
@@ -137,7 +137,7 @@ export function drawGrid() {
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         //actor.draw(ctx, panX, panY);
-        drawActor(ctx, actor, panX, panY);
+        drawActor(ctx, panX, panY, actor);
         visibleActors++;
       }
 
