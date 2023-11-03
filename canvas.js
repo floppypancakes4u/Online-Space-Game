@@ -1,4 +1,5 @@
 import { sectors } from './sectors.js';
+import { Actor, Sun, Planet, Asteroid, Spaceship } from './actors.js';
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -34,11 +35,18 @@ function saveScaledPathData(instance, id, scale, path, color) {
 }
 
 export function drawActor(ctx, actor, panX, panY) {
-  if (actor.type === 'Asteroid') {
+  if (actor instanceof Asteroid) {
     drawAsteroid(ctx, actor, panX, panY);
   } else {
     //console.log('need to draw actor: ', actor);
   }
+}
+
+function drawSun(ctx, panX, panY, sun) {
+  ctx.beginPath();
+  ctx.arc(sun.x - panX, sun.y - panY, sun.size, 0, 2 * Math.PI, false);
+  ctx.fillStyle = sun.color;
+  ctx.fill();
 }
 
 function drawAsteroid(ctx, asteroid, panX, panY) {
