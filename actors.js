@@ -130,6 +130,18 @@ export class Actor {
   }
 }
 
+export class SolarBody extends Actor {
+  constructor(x, y, size, color) {
+    super(x, y, size, color);
+  }
+}
+
+export class Sun extends SolarBody {
+  constructor(x, y, size, color) {
+    super(x, y, size, color);
+  }
+}
+
 export class Planet extends Actor {
   constructor(parent, size, color, orbitRadius, orbitSpeed) {
     super(parent.x, parent.y, size, color);
