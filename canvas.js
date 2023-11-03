@@ -35,10 +35,14 @@ function saveScaledPathData(instance, id, scale, path, color) {
 }
 
 export function drawActor(ctx, panX, panY, actor) {
-  if (actor instanceof Asteroid) {
-    drawAsteroid(ctx, panX, panY, actor);
-  } else if (actor instanceof Sun) {
-    drawSun(ctx, panX, panY, actor);
+  try {
+    if (actor instanceof Asteroid) {
+      drawAsteroid(ctx, panX, panY, actor);
+    } else if (actor instanceof Sun) {
+      drawSun(ctx, panX, panY, actor);
+    }
+  } catch (e) {
+    console.error('DrawActor Error', e);
   }
 }
 
