@@ -5,6 +5,10 @@ import { SectorManager } from './sectors.js';
 let asteroidShapes = [];
 export var actors = []; // Array to store all actors
 
+export function initActors() {
+  generateAsteroidShapes();
+}
+
 // Functions
 function generateAsteroidPoints(size) {
   const points = [];
@@ -31,6 +35,23 @@ function createPathFromPoints(points, scale = 1) {
   }
   path.closePath();
   return path;
+}
+
+function generateAsteroidShapes() {
+  for (let i = 0; i < 50; i++) {
+    const size = 10 + Math.random() * 20;
+    const asteroidPoints = generateAsteroidPoints(size);
+    const minShade = 25;
+    const shadeRange = 50;
+    const grayShade = minShade + Math.floor(Math.random() * shadeRange);
+    const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
+    for (let scale = 1.0; scale >= 0.1; scale -= 0.1) {
+      const scaledPath = createPathFromPoints(asteroidPoints, scale);
+      savePathData('Asteroid', i, scale, scaledPath, color);
+    }
+
+    asteroidShapes.push(i);
+  }
 }
 
 function getRandomElement(arr) {
@@ -270,4 +291,4 @@ export class Spaceship extends Actor {
   }
 }
 
-console.log("Actors Loaded");
+console.log('Actors Loaded');
