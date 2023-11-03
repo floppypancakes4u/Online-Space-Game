@@ -1,4 +1,5 @@
 import { sectors } from './sectors.js';
+import { Actor, Sun, Planet, Asteroid, Spaceship } from './actors.js';
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -46,7 +47,7 @@ export function drawActor(ctx, panX, panY, actor) {
 }
 
 function drawSun(ctx, panX, panY, sun) {
-  //console.log('sundrawn');
+  console.log('sundrawn');
   ctx.beginPath();
   ctx.arc(sun.x - panX, sun.y - panY, sun.size, 0, 2 * Math.PI, false);
   ctx.fillStyle = sun.color;
@@ -409,3 +410,5 @@ export function canvasRenderLoop() {
 }
 
 coordDisplay.textContent = `X: 0, Y: 0`;
+
+console.log("Canvas Loaded");

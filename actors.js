@@ -269,3 +269,5 @@ export class Spaceship extends Actor {
     }
   }
 }
+
+console.log("Actors Loaded");

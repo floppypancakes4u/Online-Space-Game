@@ -94,3 +94,5 @@ const ASTEROID_COUNT = 100;
   // Start the game loop
   window.requestAnimationFrame(canvasRenderLoop);
 })();
+
+console.log('Main Loaded');
