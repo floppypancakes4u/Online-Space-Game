@@ -1,5 +1,12 @@
 import { sectors } from './sectors.js';
-import { Actor, Sun, Planet, Asteroid, Spaceship } from './actors.js';
+import {
+  Actor,
+  Sun,
+  Planet,
+  Asteroid,
+  Spaceship,
+  actorTypes,
+} from './actors.js';
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -17,6 +24,7 @@ let culledActors = 0;
 let gridSize = 50;
 let panX = 0;
 let panY = 0;
+var hoveredActor = null;
 
 let isPanning = false;
 let lastMouseX, lastMouseY;
@@ -37,17 +45,16 @@ function saveScaledPathData(instance, id, scale, path, color) {
 export function drawActor(ctx, panX, panY, actor) {
   try {
     if (actor instanceof Asteroid) {
-      drawAsteroid(ctx, panX, panY, actor);
+      drawAsteroid(ctx, actor, panX, panY);
     } else if (actor instanceof Sun) {
-      drawSun(ctx, panX, panY, actor);
+      drawSun(ctx, actor, panX, panY);
     }
   } catch (e) {
     console.error('DrawActor Error', e);
   }
 }
 
-function drawSun(ctx, panX, panY, sun) {
-  console.log('sundrawn');
+function drawSun(ctx, sun, panX, panY) {
   ctx.beginPath();
   ctx.arc(sun.x - panX, sun.y - panY, sun.size, 0, 2 * Math.PI, false);
   ctx.fillStyle = sun.color;
@@ -55,13 +62,14 @@ function drawSun(ctx, panX, panY, sun) {
 }
 
 function drawAsteroid(ctx, asteroid, panX, panY) {
-  const key = `type-Asteroid-id-${asteroid.shapeId}-scale-${zoomFactor.toFixed(
-    2
-  )}`;
+  const key = `type-${actorTypes.ASTEROID}-id-${
+    asteroid.shapeId
+  }-scale-${zoomFactor.toFixed(2)}`;
   const pathData = pathDataMap.get(key);
 
   if (!pathData) {
     console.error(`Path data not found for key: ${key}`);
+    console.error('asteroid: ', asteroid);
     return;
   }
 
@@ -142,12 +150,20 @@ export function drawGrid() {
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         //actor.draw(ctx, panX, panY);
-        drawActor(ctx, panX, panY, actor);
+        drawActor(ctx, panX, panY, actor);  
+    
+        if (!hoveredActor) {
+          hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY) ? actor : null;    
+        }
+
         visibleActors++;
       }
 
       totalActors++;
     }
+
+    if (hoveredActor) drawReticle(hoveredActor);
+    hoveredActor = null;
   }
 
   drawnSectors.clear();
@@ -202,15 +218,6 @@ export function mouseMove(e) {
   lastMouseY = mouseY;
 
   //drawGrid();
-
-  // Draw target reticle on mouse over
-  // target = null;
-  // for (let actor of actors) {
-  //   target = checkActorAndDescendants(actor, mouseX, mouseY);
-  //   if (target) {
-  //     break;
-  //   }
-  // }
 
   for (let sector of sectors) {
     sector.isHovered = sector.isMouseWithin(mouseX, mouseY, panX, panY);
@@ -272,13 +279,15 @@ function drawReticle(actor) {
   ctx.lineWidth = originalLineWidth; // Restore the original line width
 }
 
-function checkActorAndDescendants(actor, mouseX, mouseY) {
-  if (actor.isUnderCursor(mouseX, mouseY)) {
+function checkActorAndDescendants(actor) {
+  if (!actor.isUnderCursor) return;
+
+  if (actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)) {
     return actor;
   }
 
   for (let child of actor.children) {
-    let result = checkActorAndDescendants(child, mouseX, mouseY);
+    let result = checkActorAndDescendants(child);
     if (result) {
       return result;
     }
@@ -353,9 +362,9 @@ const times = [];
 const maxSamples = 100;
 var runTest = false;
 
-setInterval(() => {
-  runTest = true;
-}, 250);
+// setInterval(() => {
+//   runTest = true;
+// }, 250);
 
 function measurePerformance(fn) {
   const start = performance.now();
@@ -389,14 +398,7 @@ export function update() {
   }
 
   for (let sector of sectors) {
-    sector.update();
-    // for (const [key, actor] of sector.actors) {
-    //   // Using the default iterator (could be `map.entries()` instead)
-    //   //console.log(`The value for key ${key} is ${actor}`);
-    //   actor.update();
-    // }
-
-    //sector.recombine();
+    sector.update();    
   }
 
   // Update Dev stuff
@@ -411,4 +413,4 @@ export function canvasRenderLoop() {
 
 coordDisplay.textContent = `X: 0, Y: 0`;
 
-console.log("Canvas Loaded");
+console.log('Canvas Loaded');

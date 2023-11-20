@@ -1,8 +1,18 @@
 // Import statements
 import { SectorManager } from './sectors.js';
+import { savePathData } from './canvas.js';
 
 // Variables
 let asteroidShapes = [];
+export const actorTypes = {
+  ASTEROID: 'Asteroid',
+  SHIP: 'Space Ship',
+  SUN: 'Sun',
+  PLANET: 'Planet',
+  MOON: 'Moon',
+  STATION: 'Station',
+  CONTAINER: 'Container',
+};
 export var actors = []; // Array to store all actors
 
 export function initActors() {
@@ -47,7 +57,7 @@ function generateAsteroidShapes() {
     const color = `rgb(${grayShade}, ${grayShade}, ${grayShade})`;
     for (let scale = 1.0; scale >= 0.1; scale -= 0.1) {
       const scaledPath = createPathFromPoints(asteroidPoints, scale);
-      savePathData('Asteroid', i, scale, scaledPath, color);
+      savePathData(actorTypes.ASTEROID, i, scale, scaledPath, color);
     }
 
     asteroidShapes.push(i);
@@ -79,10 +89,12 @@ export class Actor {
     return this.currentSector && this.currentSector.isActorWithinBounds(this);
   }
 
-  isUnderCursor(mouseX, mouseY) {
+  isUnderCursor(mouseX, mouseY, panX, panY) {
     let dx = mouseX - (this.x - panX);
     let dy = mouseY - (this.y - panY);
-    return dx * dx + dy * dy <= this.size * this.size;
+    let isUnder = dx * dx + dy * dy <= this.size * this.size;
+    //if (isUnder) console.log('Actor under cursor: ', this);
+    return isUnder;
   }
 
   isVisible(canvasWidth, canvasHeight, panX, panY) {
