@@ -1,6 +1,6 @@
 // Import statements
 import { SectorManager } from './sectors.js';
-import { savePathData } from './canvas.js';
+import { savePathData, drawReticle } from './canvas.js';
 
 // Variables
 let asteroidShapes = [];
@@ -13,7 +13,7 @@ export const actorTypes = {
   STATION: 'Station',
   CONTAINER: 'Container',
 };
-export var actors = []; // Array to store all actors
+export var actors = {}; // Array to store all actors
 
 export function initActors() {
   generateAsteroidShapes();
@@ -75,6 +75,7 @@ function getRandomElement(arr) {
 // Classes
 export class Actor {
   constructor(x, y, size, color) {
+    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
     this.x = x;
     this.y = y;
     this.size = size;
@@ -88,6 +89,7 @@ export class Actor {
     this.isThrusting = false;
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
+    actors[this.ID] = this;    
   }
 
   setAutopilotTarget(target, x = null, y = null) {
@@ -101,7 +103,12 @@ export class Actor {
       this.targetActor = null; // Clear target actor when using direct coordinates
     }
   }
-  
+
+  checkActorContacts() {
+    for (const [ID, actor] of Object.entries(actors)) {
+      console.log(`${ID}: ${actor}`);
+    }
+  }
 
   disableAutopilot() {
     this.autopilot = false;
@@ -193,7 +200,7 @@ export class Actor {
 
   navigateTowardsTarget() {
     let targetX, targetY;
-  
+
     // Check if navigating towards another Actor
     if (this.targetActor) {
       targetX = this.targetActor.x;
@@ -205,41 +212,44 @@ export class Actor {
       // No target set
       return;
     }
-  
+
     // Calculate the angle towards the target
     const targetAngle = Math.atan2(targetY - this.y, targetX - this.x);
-    
+
     // Adjust rotation to face the target
     if (this.rotation < targetAngle) {
       this.rotateRight(true);
     } else if (this.rotation > targetAngle) {
       this.rotateLeft(true);
     }
-    
+
     // Calculate the distance to the target
     const dx = targetX - this.x;
     const dy = targetY - this.y;
     const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Threshold for stopping the autopilot (e.g., when within 5 units of the target)
     const stopThreshold = 5;
-    
+
     // If within stopping threshold, stop the autopilot
     if (distanceToTarget <= stopThreshold) {
       this.disableAutopilot();
       this.thrustForward(false);
       return;
     }
-    
+
     // Threshold for starting to decelerate (e.g., start slowing down 50 units from the target)
     const decelerationThreshold = 50;
-    
+
     // Engage thrust if not facing the target directly and far enough from the target
     const angleDifference = Math.abs(this.rotation - targetAngle);
     if (angleDifference < 0.1 && distanceToTarget > decelerationThreshold) {
       // If far from the target, full thrust
       this.thrustForward(true);
-    } else if (angleDifference < 0.1 && distanceToTarget <= decelerationThreshold) {
+    } else if (
+      angleDifference < 0.1 &&
+      distanceToTarget <= decelerationThreshold
+    ) {
       // If near the target, decelerate
       this.thrustForward(false);
       this.applyDeceleration();
@@ -248,13 +258,12 @@ export class Actor {
       this.thrustForward(false);
     }
   }
-  
+
   applyDeceleration() {
     const decelerationFactor = 0.95;
     this.velocity.x *= decelerationFactor;
     this.velocity.y *= decelerationFactor;
-  }
-  
+  }  
 }
 
 export class SolarBody extends Actor {
@@ -312,6 +321,18 @@ export class Spaceship extends Actor {
     this.drag = 0.99;
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
+
+    setTimeout(() => {
+      this.checkActorContacts();
+    }, 2500);
+  }
+
+  getRadarRange() {
+    return 250;
+  }
+
+  getVisualRange() {
+    return 450;
   }
 
   findRandomTarget() {
@@ -320,11 +341,7 @@ export class Spaceship extends Actor {
     this.targetBody = bodies[randomIndex];
   }
 
-  customUpdate() {
-    if (this.autopilot) {
-      this.navigateTowardsTarget();
-    }
-
+  HandleShipMovement() {
     // Apply rotation
     this.rotation %= Math.PI * 2;
 
@@ -365,6 +382,16 @@ export class Spaceship extends Actor {
     // Update position based on the current velocity
     this.x += this.velocity.x;
     this.y += this.velocity.y;
+  }
+
+  customUpdate() {
+    if (this.autopilot) {
+      this.navigateTowardsTarget();
+    }
+
+    this.HandleShipMovement();
+    drawReticle(this, "yellow", "dotted", this.getRadarRange())
+    drawReticle(this, "orange", "dashed", this.getVisualRange())
 
     // Other existing code...
   }
