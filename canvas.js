@@ -167,6 +167,7 @@ export function drawGrid() {
   totalActors = 0;
   visibleActors = 0;
   // Draw sector borders and information
+  hoveredActor = null;
   for (let sector of sectors) {
     //sector.drawBorder();
     drawBorder(sector, sector.isHovered);
@@ -189,7 +190,7 @@ export function drawGrid() {
       totalActors++;
     }
 
-    if (hoveredActor) drawReticle(hoveredActor);
+    if (hoveredActor) drawReticle({ actor: hoveredActor });
     //hoveredActor = null;
   }
 
@@ -301,23 +302,6 @@ export function mouseMove(e) {
 
   lastMouseX = mouseX;
   lastMouseY = mouseY;
-
-  hoveredActor = null; // Reset hoveredActor
-  for (let sector of sectors) {
-    sector.isHovered = sector.isMouseWithin(mouseX, mouseY, panX, panY);
-
-    for (const [key, actor] of sector.actors) {
-      if (actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)) {
-        hoveredActor = actor;
-        break; // Break if hovered actor is found
-      }
-    }
-    if (hoveredActor) break; // Break the outer loop as well
-  }
-
-  if (hoveredActor) {
-    drawReticle(hoveredActor); // Draw the reticle for the hovered actor
-  }
 }
 
 
@@ -343,6 +327,8 @@ export function drawReticle(options) {
     showText = true
   } = options;
 
+  if (!actor) console.log("drawReticle: ", options);
+  
   let originalLineWidth = ctx.lineWidth; // Save the original line width
 
   // Set line style

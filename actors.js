@@ -327,9 +327,7 @@ export class Spaceship extends Actor {
     this.radarContacts = [];
     this.visualContacts = [];
 
-    setTimeout(() => {
       this.checkActorContacts(this.getRadarRange(), this.getVisualRange());
-    }, 2500);
   }
 
   getRadarRange() {
@@ -353,7 +351,10 @@ export class Spaceship extends Actor {
       //console.log(`${ID}: ${actor}`, range);
     }
 
-    console.log('this.radarContacts', this.radarContacts);
+    setTimeout(() => {
+      this.checkActorContacts(this.getRadarRange(), this.getVisualRange());
+    }, 250);
+
   }
 
   findRandomTarget() {
