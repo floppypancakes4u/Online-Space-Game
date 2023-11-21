@@ -1,11 +1,13 @@
-export class PlayerShipController {
-  constructor(spaceship) {
-    this.ship = spaceship;
+import { setCamera } from './canvas.js';
 
-    this.initKeyListeners();
+export class PlayerShipController {
+  constructor(spaceship, ctx) {
+    this.ship = spaceship;
+    this.ctx = ctx;
+    this.initListeners();
   }
 
-  initKeyListeners() {
+  initListeners() {
     this.keys = {
       w: false,
       a: false,
@@ -24,6 +26,19 @@ export class PlayerShipController {
         this.keys[event.key] = false;
       }
     });
+
+    const _ = this;
+    document.addEventListener('rightClickCoordinates', function(event) {
+      const { x, y, target } = event.detail;
+      console.log(`Received right click coordinates: `, event.detail);
+  
+      _.ship.setAutopilotTarget(target, x, y)
+      // Perform any action with these coordinates
+  });
+  }
+
+  centerCameraOnShip() {
+    setCamera(this.ship.x, this.ship.y);
   }
 
   update() {
@@ -33,6 +48,9 @@ export class PlayerShipController {
     this.ship.rotateLeft(this.keys.a);
     this.ship.rotateRight(this.keys.d);
 
+    if (this.keys.w || this.keys.s || this.keys.a || this.keys.d) this.ship.disableAutopilot()
+
     this.ship.update(); // Continue to update the ship's position and state
+    this.centerCameraOnShip();
   }
 }

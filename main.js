@@ -3,6 +3,7 @@ import {
   setCanvasSize,
   canvasRenderLoop,
   initEventListeners,
+  getCanvasData
 } from './canvas.js';
 import { SM, SectorManager } from './sectors.js';
 import {

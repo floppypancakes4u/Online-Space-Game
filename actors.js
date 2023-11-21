@@ -79,10 +79,50 @@ export class Actor {
     this.y = y;
     this.size = size;
     this.color = color;
+    this.rotation = 0;
     this.type = 'Sun';
     this.currentSector = null;
     this.children = [];
     this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`;
+    this.velocity = { x: 0, y: 0 };
+    this.isThrusting = false;
+    this.autopilot = false;
+    this.targetPosition = { x: 0, y: 0 };
+  }
+
+  setAutopilotTarget(target, x = null, y = null) {
+    if (target instanceof Actor) {
+      this.targetActor = target;
+      this.autopilot = true;
+      this.targetPosition = null; // Clear direct coordinates when using an actor as a target
+    } else if (x !== null && y !== null) {
+      this.targetPosition = { x, y };
+      this.autopilot = true;
+      this.targetActor = null; // Clear target actor when using direct coordinates
+    }
+  }
+  
+
+  disableAutopilot() {
+    this.autopilot = false;
+    this.targetPosition = null;
+    this.targetActor = null;
+  }
+
+  rotateLeft(pressed) {
+    if (pressed) this.rotation -= 0.1;
+  }
+
+  rotateRight(pressed) {
+    if (pressed) this.rotation += 0.1;
+  }
+
+  thrustForward(pressed) {
+    this.isThrusting = pressed;
+  }
+
+  stopThrust(pressed) {
+    this.isBreaking = pressed;
   }
 
   isInCurrentSector() {
@@ -93,8 +133,16 @@ export class Actor {
     let dx = mouseX - (this.x - panX);
     let dy = mouseY - (this.y - panY);
     let isUnder = dx * dx + dy * dy <= this.size * this.size;
-    //if (isUnder) console.log('Actor under cursor: ', this);
+
     return isUnder;
+  }
+
+  getSpeed() {
+    return (
+      Math.sqrt(
+        this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y
+      ) * 23
+    );
   }
 
   isVisible(canvasWidth, canvasHeight, panX, panY) {
@@ -107,7 +155,6 @@ export class Actor {
   }
 
   draw(ctx, panX, panY) {
-    console.log();
     ctx.beginPath();
     ctx.arc(this.x - panX, this.y - panY, this.size, 0, 2 * Math.PI, false);
     ctx.fillStyle = this.color;
@@ -143,6 +190,71 @@ export class Actor {
     this.y = y;
     SectorManager.addActor(this);
   }
+
+  navigateTowardsTarget() {
+    let targetX, targetY;
+  
+    // Check if navigating towards another Actor
+    if (this.targetActor) {
+      targetX = this.targetActor.x;
+      targetY = this.targetActor.y;
+    } else if (this.targetPosition) {
+      targetX = this.targetPosition.x;
+      targetY = this.targetPosition.y;
+    } else {
+      // No target set
+      return;
+    }
+  
+    // Calculate the angle towards the target
+    const targetAngle = Math.atan2(targetY - this.y, targetX - this.x);
+    
+    // Adjust rotation to face the target
+    if (this.rotation < targetAngle) {
+      this.rotateRight(true);
+    } else if (this.rotation > targetAngle) {
+      this.rotateLeft(true);
+    }
+    
+    // Calculate the distance to the target
+    const dx = targetX - this.x;
+    const dy = targetY - this.y;
+    const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+    
+    // Threshold for stopping the autopilot (e.g., when within 5 units of the target)
+    const stopThreshold = 5;
+    
+    // If within stopping threshold, stop the autopilot
+    if (distanceToTarget <= stopThreshold) {
+      this.disableAutopilot();
+      this.thrustForward(false);
+      return;
+    }
+    
+    // Threshold for starting to decelerate (e.g., start slowing down 50 units from the target)
+    const decelerationThreshold = 50;
+    
+    // Engage thrust if not facing the target directly and far enough from the target
+    const angleDifference = Math.abs(this.rotation - targetAngle);
+    if (angleDifference < 0.1 && distanceToTarget > decelerationThreshold) {
+      // If far from the target, full thrust
+      this.thrustForward(true);
+    } else if (angleDifference < 0.1 && distanceToTarget <= decelerationThreshold) {
+      // If near the target, decelerate
+      this.thrustForward(false);
+      this.applyDeceleration();
+    } else {
+      // If not aligned with target, stop thrusting
+      this.thrustForward(false);
+    }
+  }
+  
+  applyDeceleration() {
+    const decelerationFactor = 0.95;
+    this.velocity.x *= decelerationFactor;
+    this.velocity.y *= decelerationFactor;
+  }
+  
 }
 
 export class SolarBody extends Actor {
@@ -195,29 +307,11 @@ export class Spaceship extends Actor {
   constructor(x, y, size, color) {
     super(x, y, size, color);
     this.type = 'Spaceship';
-    this.rotation = 0;
+    this.MaxSpeed = 55;
     this.thrust = 0.1;
     this.drag = 0.99;
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
-    this.isThrusting = false;
-    this.velocity = { x: 0, y: 0 };
-  }
-
-  rotateLeft(pressed) {
-    if (pressed) this.rotation -= 0.1;
-  }
-
-  rotateRight(pressed) {
-    if (pressed) this.rotation += 0.1;
-  }
-
-  thrustForward(pressed) {   
-    this.isThrusting = pressed;
-  }
-
-  stopThrust(pressed) {
-    this.isBreaking = pressed;
   }
 
   findRandomTarget() {
@@ -227,6 +321,10 @@ export class Spaceship extends Actor {
   }
 
   customUpdate() {
+    if (this.autopilot) {
+      this.navigateTowardsTarget();
+    }
+
     // Apply rotation
     this.rotation %= Math.PI * 2;
 
@@ -238,18 +336,26 @@ export class Spaceship extends Actor {
       // Apply thrust in the direction of rotation
       this.velocity.x += thrustDirectionX * this.thrust;
       this.velocity.y += thrustDirectionY * this.thrust;
-
-      console.log(this.velocity)
     }
 
     if (this.isBreaking) {
       // Apply deceleration
-      this.velocity.x *= (1 - this.deceleration);
-      this.velocity.y *= (1 - this.deceleration);
+      this.velocity.x *= 1 - this.thrust * 0.1;
+      this.velocity.y *= 1 - this.thrust * 0.1;
 
       // Ensure velocity doesn't go below zero
       if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
       if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0;
+    }
+
+    const currentSpeed = this.getSpeed(); // getSpeed() method from Actor class
+    if (currentSpeed > this.MaxSpeed) {
+      // Calculate the scaling factor
+      const scalingFactor = this.MaxSpeed / currentSpeed;
+
+      // Scale down the velocity components
+      this.velocity.x *= scalingFactor;
+      this.velocity.y *= scalingFactor;
     }
 
     // If we want a drag effect later.. here ya go
@@ -262,81 +368,6 @@ export class Spaceship extends Actor {
 
     // Other existing code...
   }
-
-  // customUpdate() {
-  //   // Apply rotation
-  //   this.rotation %= Math.PI * 2;
-
-  //   if (this.isMoving && this.targetBody) {
-  //     // Calculate direction vector
-  //     const dx = this.targetBody.x - this.x;
-  //     const dy = this.targetBody.y - this.y;
-  //     const distance = Math.sqrt(dx * dx + dy * dy);
-
-  //     // Apply thrust
-  //     const thrustX = (dx / distance) * this.thrust;
-  //     const thrustY = (dy / distance) * this.thrust;
-  //     this.velocity.x += thrustX;
-  //     this.velocity.y += thrustY;
-
-  //     // Apply drag
-  //     this.velocity.x *= this.drag;
-  //     this.velocity.y *= this.drag;
-
-  //     // Update position based on velocity
-  //     this.x += this.velocity.x;
-  //     this.y += this.velocity.y;
-
-  //     // Update rotation based on velocity
-  //     this.rotation = Math.atan2(this.velocity.y, this.velocity.x);
-
-  //     // Check if reached target
-  //     if (distance <= this.targetBody.size + this.size) {
-  //       this.isMoving = false;
-  //       setTimeout(() => {
-  //         this.findRandomTarget();
-  //         this.isMoving = true;
-  //       }, 3000); // Wait for 3 seconds before moving to the next target
-  //     }
-  //   }
-
-  //   // // Update all children
-  //   // for (let child of this.children) {
-  //   //   child.update();
-  //   // }
-
-  //   // super.update();
-  // }
-
-  // draw(ctx, panX, panY) {
-  //   ctx.save();
-  //   ctx.translate(this.x - panX, this.y - panY);
-  //   ctx.rotate(this.rotation);
-
-  //   // Draw spaceship shape
-  //   ctx.beginPath();
-  //   ctx.moveTo(-10, -10);
-  //   ctx.lineTo(10, 0);
-  //   ctx.lineTo(-10, 10);
-  //   ctx.closePath();
-  //   ctx.fillStyle = this.color;
-  //   ctx.fill();
-
-  //   // Draw direction indicator line
-  //   ctx.beginPath();
-  //   ctx.moveTo(10, 0); // Starting point of the line
-  //   ctx.lineTo(20, 0); // Ending point of the line
-  //   ctx.strokeStyle = 'white';
-  //   ctx.lineWidth = 2;
-  //   ctx.stroke();
-
-  //   ctx.restore();
-
-  //   // Draw all children
-  //   for (let child of this.children) {
-  //     child.draw(ctx, panX, panY);
-  //   }
-  // }
 }
 
 console.log('Actors Loaded');
