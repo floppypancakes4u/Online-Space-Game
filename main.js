@@ -13,6 +13,7 @@ import {
   Asteroid,
   Spaceship,
 } from './actors.js';
+import { PlayerShipController } from './shipControllers.js';
 
 const ASTEROID_COUNT = 100;
 (function () {
@@ -30,7 +31,6 @@ const ASTEROID_COUNT = 100;
   // Generate Solar Bodies
   let sun = new Sun(0, 0, 50, 'yellow');
   SectorManager.addActor(sun);
-  console.log('Sun: ', sun);
 
   // Draw Planets
   // let planetColors = ['blue', 'green', 'red', 'purple', 'white'];
@@ -68,11 +68,13 @@ const ASTEROID_COUNT = 100;
   // Remove the existing spaceship and create a new Spaceship instance
   let spaceship = new Spaceship(100, 0, 15, 'cyan');
   SectorManager.addActor(spaceship);
+
+  const playerController = new PlayerShipController(spaceship);
   //actors.push(spaceship);
 
   // Generate random target for the spaceship
-  spaceship.findRandomTarget();
-  spaceship.isMoving = true;
+  //spaceship.findRandomTarget();
+  //spaceship.isMoving = true;
 
   // DEV Controls
   const slider = document.getElementById('asteroidSlider');
@@ -91,8 +93,17 @@ const ASTEROID_COUNT = 100;
     SM.reduceDebugAsteroids();
   });
 
+  
+  function gameLoop() {
+    playerController.update();
+    window.requestAnimationFrame(gameLoop);
+  }
+
+  window.requestAnimationFrame(gameLoop);
+
   // Start the game loop
   window.requestAnimationFrame(canvasRenderLoop);
 })();
+
 
 console.log('Main Loaded');

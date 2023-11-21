@@ -31,7 +31,6 @@ let lastMouseX, lastMouseY;
 let zoomFactor = 1.0;
 
 const pathDataMap = new Map();
-console.log('canvas');
 
 export function savePathData(instance, id, scale, pathData, color) {
   if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
@@ -48,10 +47,42 @@ export function drawActor(ctx, panX, panY, actor) {
       drawAsteroid(ctx, actor, panX, panY);
     } else if (actor instanceof Sun) {
       drawSun(ctx, actor, panX, panY);
+    } else if (actor instanceof Spaceship) {
+      drawShip(ctx, actor, panX, panY)
     }
   } catch (e) {
     console.error('DrawActor Error', e);
   }
+}
+
+function drawShip(ctx, actor, panX, panY) {
+  ctx.save();
+  ctx.translate(actor.x - panX, actor.y - panY);
+  ctx.rotate(actor.rotation);
+
+  // Draw spaceship shape
+  ctx.beginPath();
+  ctx.moveTo(-10, -10);
+  ctx.lineTo(10, 0);
+  ctx.lineTo(-10, 10);
+  ctx.closePath();
+  ctx.fillStyle = actor.color;
+  ctx.fill();
+
+  // Draw direction indicator line
+  ctx.beginPath();
+  ctx.moveTo(10, 0); // Starting point of the line
+  ctx.lineTo(20, 0); // Ending point of the line
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Draw all children
+  // for (let child of this.children) {
+  //   child.draw(ctx, panX, panY);
+  // }
 }
 
 function drawSun(ctx, sun, panX, panY) {

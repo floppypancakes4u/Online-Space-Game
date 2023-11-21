@@ -196,29 +196,28 @@ export class Spaceship extends Actor {
     super(x, y, size, color);
     this.type = 'Spaceship';
     this.rotation = 0;
-    this.thrust = 0.01;
-    this.maxThrust = 0.1;
+    this.thrust = 0.1;
     this.drag = 0.99;
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
-    this.isMoving = false;
+    this.isThrusting = false;
     this.velocity = { x: 0, y: 0 };
   }
 
-  rotateLeft() {
-    this.rotation -= 0.1;
+  rotateLeft(pressed) {
+    if (pressed) this.rotation -= 0.1;
   }
 
-  rotateRight() {
-    this.rotation += 0.1;
+  rotateRight(pressed) {
+    if (pressed) this.rotation += 0.1;
   }
 
-  thrustForward() {
-    this.thrust = this.maxThrust;
+  thrustForward(pressed) {   
+    this.isThrusting = pressed;
   }
 
-  stopThrust() {
-    this.thrust = 0;
+  stopThrust(pressed) {
+    this.isBreaking = pressed;
   }
 
   findRandomTarget() {
@@ -231,76 +230,113 @@ export class Spaceship extends Actor {
     // Apply rotation
     this.rotation %= Math.PI * 2;
 
-    if (this.isMoving && this.targetBody) {
-      // Calculate direction vector
-      const dx = this.targetBody.x - this.x;
-      const dy = this.targetBody.y - this.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+    if (this.isThrusting && !this.isBreaking) {
+      // Calculate thrust direction based on rotation
+      const thrustDirectionX = Math.cos(this.rotation);
+      const thrustDirectionY = Math.sin(this.rotation);
 
-      // Apply thrust
-      const thrustX = (dx / distance) * this.thrust;
-      const thrustY = (dy / distance) * this.thrust;
-      this.velocity.x += thrustX;
-      this.velocity.y += thrustY;
+      // Apply thrust in the direction of rotation
+      this.velocity.x += thrustDirectionX * this.thrust;
+      this.velocity.y += thrustDirectionY * this.thrust;
 
-      // Apply drag
-      this.velocity.x *= this.drag;
-      this.velocity.y *= this.drag;
-
-      // Update position based on velocity
-      this.x += this.velocity.x;
-      this.y += this.velocity.y;
-
-      // Update rotation based on velocity
-      this.rotation = Math.atan2(this.velocity.y, this.velocity.x);
-
-      // Check if reached target
-      if (distance <= this.targetBody.size + this.size) {
-        this.isMoving = false;
-        setTimeout(() => {
-          this.findRandomTarget();
-          this.isMoving = true;
-        }, 3000); // Wait for 3 seconds before moving to the next target
-      }
+      console.log(this.velocity)
     }
 
-    // // Update all children
-    // for (let child of this.children) {
-    //   child.update();
-    // }
+    if (this.isBreaking) {
+      // Apply deceleration
+      this.velocity.x *= (1 - this.deceleration);
+      this.velocity.y *= (1 - this.deceleration);
 
-    // super.update();
-  }
-
-  draw(ctx, panX, panY) {
-    ctx.save();
-    ctx.translate(this.x - panX, this.y - panY);
-    ctx.rotate(this.rotation);
-
-    // Draw spaceship shape
-    ctx.beginPath();
-    ctx.moveTo(-10, -10);
-    ctx.lineTo(10, 0);
-    ctx.lineTo(-10, 10);
-    ctx.closePath();
-    ctx.fillStyle = this.color;
-    ctx.fill();
-
-    // Draw direction indicator line
-    ctx.beginPath();
-    ctx.moveTo(10, 0); // Starting point of the line
-    ctx.lineTo(20, 0); // Ending point of the line
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.restore();
-
-    // Draw all children
-    for (let child of this.children) {
-      child.draw(ctx, panX, panY);
+      // Ensure velocity doesn't go below zero
+      if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
+      if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0;
     }
+
+    // If we want a drag effect later.. here ya go
+    // this.velocity.x *= this.drag;
+    // this.velocity.y *= this.drag;
+
+    // Update position based on the current velocity
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+
+    // Other existing code...
   }
+
+  // customUpdate() {
+  //   // Apply rotation
+  //   this.rotation %= Math.PI * 2;
+
+  //   if (this.isMoving && this.targetBody) {
+  //     // Calculate direction vector
+  //     const dx = this.targetBody.x - this.x;
+  //     const dy = this.targetBody.y - this.y;
+  //     const distance = Math.sqrt(dx * dx + dy * dy);
+
+  //     // Apply thrust
+  //     const thrustX = (dx / distance) * this.thrust;
+  //     const thrustY = (dy / distance) * this.thrust;
+  //     this.velocity.x += thrustX;
+  //     this.velocity.y += thrustY;
+
+  //     // Apply drag
+  //     this.velocity.x *= this.drag;
+  //     this.velocity.y *= this.drag;
+
+  //     // Update position based on velocity
+  //     this.x += this.velocity.x;
+  //     this.y += this.velocity.y;
+
+  //     // Update rotation based on velocity
+  //     this.rotation = Math.atan2(this.velocity.y, this.velocity.x);
+
+  //     // Check if reached target
+  //     if (distance <= this.targetBody.size + this.size) {
+  //       this.isMoving = false;
+  //       setTimeout(() => {
+  //         this.findRandomTarget();
+  //         this.isMoving = true;
+  //       }, 3000); // Wait for 3 seconds before moving to the next target
+  //     }
+  //   }
+
+  //   // // Update all children
+  //   // for (let child of this.children) {
+  //   //   child.update();
+  //   // }
+
+  //   // super.update();
+  // }
+
+  // draw(ctx, panX, panY) {
+  //   ctx.save();
+  //   ctx.translate(this.x - panX, this.y - panY);
+  //   ctx.rotate(this.rotation);
+
+  //   // Draw spaceship shape
+  //   ctx.beginPath();
+  //   ctx.moveTo(-10, -10);
+  //   ctx.lineTo(10, 0);
+  //   ctx.lineTo(-10, 10);
+  //   ctx.closePath();
+  //   ctx.fillStyle = this.color;
+  //   ctx.fill();
+
+  //   // Draw direction indicator line
+  //   ctx.beginPath();
+  //   ctx.moveTo(10, 0); // Starting point of the line
+  //   ctx.lineTo(20, 0); // Ending point of the line
+  //   ctx.strokeStyle = 'white';
+  //   ctx.lineWidth = 2;
+  //   ctx.stroke();
+
+  //   ctx.restore();
+
+  //   // Draw all children
+  //   for (let child of this.children) {
+  //     child.draw(ctx, panX, panY);
+  //   }
+  // }
 }
 
 console.log('Actors Loaded');
