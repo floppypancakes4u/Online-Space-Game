@@ -411,11 +411,11 @@ export class Spaceship extends Actor {
     }
 
     this.HandleShipMovement();
-    drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange() });
-    drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange() });
+    drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange(), showText: false });
+    drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange(), showText: false });
 
     this.radarContacts.forEach((contact) => {
-      drawReticle({ actor: contact, color: 'yellow', style: 'dotted' });
+      drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
     });
 
     // Other existing code...

@@ -403,7 +403,8 @@ export function drawReticle(options) {
   // Reset line dash
   ctx.setLineDash([]);
 
-  ctx.font = '18px Arial';
+  if (showText) {
+    ctx.font = '18px Arial';
   ctx.fillStyle = 'white';
   let textX = actor.x - panX + size + 15;
   let textY = actor.y - panY;
@@ -428,6 +429,7 @@ export function drawReticle(options) {
       textY + 140
     ); // .toFixed(3) to round to 3 decimal places
   }
+  }  
 
   ctx.lineWidth = originalLineWidth; // Restore the original line width
 }
