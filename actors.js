@@ -75,7 +75,9 @@ function getRandomElement(arr) {
 // Classes
 export class Actor {
   constructor(x, y, size, color) {
-    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
     this.x = x;
     this.y = y;
     this.size = size;
@@ -89,7 +91,13 @@ export class Actor {
     this.isThrusting = false;
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
-    actors[this.ID] = this;    
+    actors[this.ID] = this;
+  }
+
+  distanceTo(otherActor) {
+    const dx = this.x - otherActor.x;
+    const dy = this.y - otherActor.y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   setAutopilotTarget(target, x = null, y = null) {
@@ -101,12 +109,6 @@ export class Actor {
       this.targetPosition = { x, y };
       this.autopilot = true;
       this.targetActor = null; // Clear target actor when using direct coordinates
-    }
-  }
-
-  checkActorContacts() {
-    for (const [ID, actor] of Object.entries(actors)) {
-      console.log(`${ID}: ${actor}`);
     }
   }
 
@@ -226,7 +228,8 @@ export class Actor {
     // Calculate the distance to the target
     const dx = targetX - this.x;
     const dy = targetY - this.y;
-    const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+    //const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+    const distanceToTarget = this.distanceTo({ x: targetX, y: targetY });
 
     // Threshold for stopping the autopilot (e.g., when within 5 units of the target)
     const stopThreshold = 5;
@@ -263,7 +266,7 @@ export class Actor {
     const decelerationFactor = 0.95;
     this.velocity.x *= decelerationFactor;
     this.velocity.y *= decelerationFactor;
-  }  
+  }
 }
 
 export class SolarBody extends Actor {
@@ -321,9 +324,11 @@ export class Spaceship extends Actor {
     this.drag = 0.99;
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
+    this.radarContacts = [];
+    this.visualContacts = [];
 
     setTimeout(() => {
-      this.checkActorContacts();
+      this.checkActorContacts(this.getRadarRange(), this.getVisualRange());
     }, 2500);
   }
 
@@ -333,6 +338,22 @@ export class Spaceship extends Actor {
 
   getVisualRange() {
     return 450;
+  }
+
+  checkActorContacts(radarRange = 50, visualRange = 50) {
+    this.radarContacts = [];
+    this.visualContacts = [];
+
+    for (const [ID, actor] of Object.entries(actors)) {
+      const range = this.distanceTo(actor);
+      if (range <= radarRange)
+        if (actor != this) this.radarContacts.push(actor);
+      if (range <= visualRange)
+        if (actor != this) this.visualContacts.push(actor);
+      //console.log(`${ID}: ${actor}`, range);
+    }
+
+    console.log('this.radarContacts', this.radarContacts);
   }
 
   findRandomTarget() {
@@ -390,8 +411,12 @@ export class Spaceship extends Actor {
     }
 
     this.HandleShipMovement();
-    drawReticle(this, "yellow", "dotted", this.getRadarRange())
-    drawReticle(this, "orange", "dashed", this.getVisualRange())
+    drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange() });
+    drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange() });
+
+    this.radarContacts.forEach((contact) => {
+      drawReticle({ actor: contact, color: 'yellow', style: 'dotted' });
+    });
 
     // Other existing code...
   }

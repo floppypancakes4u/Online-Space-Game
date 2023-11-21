@@ -333,11 +333,20 @@ export function mouseMove(e) {
 //   }
 // }
 
-export function drawReticle(actor, color = 'red', lineStyle = 'solid', reticleSize = actor.size + 10, shape = 'circle') {
+export function drawReticle(options) {
+  const {
+    actor,
+    color = 'red',
+    style = 'solid',
+    size = actor.size + 10,
+    shape = 'circle',
+    showText = true
+  } = options;
+
   let originalLineWidth = ctx.lineWidth; // Save the original line width
 
   // Set line style
-  switch (lineStyle) {
+  switch (style) {
     case 'dotted':
       ctx.setLineDash([2, 3]);
       break;
@@ -359,35 +368,35 @@ export function drawReticle(actor, color = 'red', lineStyle = 'solid', reticleSi
 
     // Top-left corner
     ctx.beginPath();
-    ctx.moveTo(actor.x - panX - reticleSize, actor.y - panY - reticleSize + cornerLength);
-    ctx.lineTo(actor.x - panX - reticleSize, actor.y - panY - reticleSize);
-    ctx.lineTo(actor.x - panX - reticleSize + cornerLength, actor.y - panY - reticleSize);
+    ctx.moveTo(actor.x - panX - size, actor.y - panY - size + cornerLength);
+    ctx.lineTo(actor.x - panX - size, actor.y - panY - size);
+    ctx.lineTo(actor.x - panX - size + cornerLength, actor.y - panY - size);
     ctx.stroke();
 
     // Top-right corner
     ctx.beginPath();
-    ctx.moveTo(actor.x - panX + reticleSize, actor.y - panY - reticleSize + cornerLength);
-    ctx.lineTo(actor.x - panX + reticleSize, actor.y - panY - reticleSize);
-    ctx.lineTo(actor.x - panX + reticleSize - cornerLength, actor.y - panY - reticleSize);
+    ctx.moveTo(actor.x - panX + size, actor.y - panY - size + cornerLength);
+    ctx.lineTo(actor.x - panX + size, actor.y - panY - size);
+    ctx.lineTo(actor.x - panX + size - cornerLength, actor.y - panY - size);
     ctx.stroke();
 
     // Bottom-right corner
     ctx.beginPath();
-    ctx.moveTo(actor.x - panX + reticleSize, actor.y - panY + reticleSize - cornerLength);
-    ctx.lineTo(actor.x - panX + reticleSize, actor.y - panY + reticleSize);
-    ctx.lineTo(actor.x - panX + reticleSize - cornerLength, actor.y - panY + reticleSize);
+    ctx.moveTo(actor.x - panX + size, actor.y - panY + size - cornerLength);
+    ctx.lineTo(actor.x - panX + size, actor.y - panY + size);
+    ctx.lineTo(actor.x - panX + size - cornerLength, actor.y - panY + size);
     ctx.stroke();
 
     // Bottom-left corner
     ctx.beginPath();
-    ctx.moveTo(actor.x - panX - reticleSize, actor.y - panY + reticleSize - cornerLength);
-    ctx.lineTo(actor.x - panX - reticleSize, actor.y - panY + reticleSize);
-    ctx.lineTo(actor.x - panX - reticleSize + cornerLength, actor.y - panY + reticleSize);
+    ctx.moveTo(actor.x - panX - size, actor.y - panY + size - cornerLength);
+    ctx.lineTo(actor.x - panX - size, actor.y - panY + size);
+    ctx.lineTo(actor.x - panX - size + cornerLength, actor.y - panY + size);
     ctx.stroke();
   } else {
     // Draw circle reticle
     ctx.beginPath();
-    ctx.arc(actor.x - panX, actor.y - panY, reticleSize, 0, 2 * Math.PI, false);
+    ctx.arc(actor.x - panX, actor.y - panY, size, 0, 2 * Math.PI, false);
     ctx.stroke();
   }
 
@@ -396,7 +405,7 @@ export function drawReticle(actor, color = 'red', lineStyle = 'solid', reticleSi
 
   ctx.font = '18px Arial';
   ctx.fillStyle = 'white';
-  let textX = actor.x - panX + reticleSize + 15;
+  let textX = actor.x - panX + size + 15;
   let textY = actor.y - panY;
 
   // Adjust text position if it goes beyond the canvas boundaries
