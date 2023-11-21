@@ -339,17 +339,53 @@ export class Spaceship extends Actor {
   }
 
   checkActorContacts(radarRange = 50, visualRange = 50) {
-    this.radarContacts = [];
-    this.visualContacts = [];
 
     for (const [ID, actor] of Object.entries(actors)) {
       const range = this.distanceTo(actor);
-      if (range <= radarRange)
-        if (actor != this) this.radarContacts.push(actor);
-      if (range <= visualRange)
-        if (actor != this) this.visualContacts.push(actor);
-      //console.log(`${ID}: ${actor}`, range);
-    }
+  
+      // Check for addition to radarContacts
+      if (range <= radarRange) {
+          if (actor != this && !this.radarContacts.includes(actor)) {
+              this.radarContacts.push(actor);
+              const event = new CustomEvent('RadarContactUpdate', {
+                detail: { type: "radarContact", action: "add", actor }
+              });
+              document.dispatchEvent(event);
+          }
+      } else {
+          // Remove from radarContacts if out of range
+          const index = this.radarContacts.indexOf(actor);
+          if (index > -1) {
+              this.radarContacts.splice(index, 1);
+              const event = new CustomEvent('RadarContactUpdate', {
+                detail: { type: "radarContact", action: "remove", actor }
+              });
+              document.dispatchEvent(event);
+          }
+      }
+  
+      // Check for addition to visualContacts
+      if (range <= visualRange) {
+          if (actor != this && !this.visualContacts.includes(actor)) {
+              this.visualContacts.push(actor);
+              const event = new CustomEvent('RadarContactUpdate', {
+                detail: { type: "visualContact", action: "add", actor }
+              });
+              document.dispatchEvent(event);
+          }
+      } else {
+          // Remove from visualContacts if out of range
+          const index = this.visualContacts.indexOf(actor);
+          if (index > -1) {
+              this.visualContacts.splice(index, 1);
+              const event = new CustomEvent('RadarContactUpdate', {
+                detail: { type: "visualContact", action: "remove", actor }
+              });
+              document.dispatchEvent(event);
+          }
+      }
+  }
+  
 
     setTimeout(() => {
       this.checkActorContacts(this.getRadarRange(), this.getVisualRange());

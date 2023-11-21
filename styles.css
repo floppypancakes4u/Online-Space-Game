@@ -55,3 +55,109 @@ canvas {
   vertical-align: middle; /* Align with the button and slider */
   color: white; /* Set text color */
 }
+
+/* .overviewArea {
+  width: 100%;  
+  height: 100vh; 
+} */
+
+#overviewTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  color: #ffffff;
+  background-color: #333;
+}
+
+#overviewTable th, #overviewTable td {
+  border: 1px solid #777;
+  padding: 8px;
+  text-align: left;
+}
+
+.selected {
+  background-color: #555;
+}
+
+button {
+  margin-top: 10px;
+}
+
+/* Rest of your CSS */
+
+th {
+  cursor: pointer;
+  position: relative;
+}
+
+th.sort-asc:after {
+  content: "\25B2"; /* Black up-pointing triangle */
+  position: absolute;
+  right: 5px;
+  top: 50%;
+}
+
+th.sort-desc:after {
+  content: "\25BC"; /* Black down-pointing triangle */
+  position: absolute;
+  right: 5px;
+  top: 50%;
+}
+
+/* Normal, targeted, and hostile actor styles */
+.actor-normal {
+  background-color: #333; /* Your normal color */
+}
+
+.actor-selected {
+  animation: selectedEffect 2s infinite;
+}
+
+.actor-targeted {
+  animation: targetedEffect 2s infinite;
+}
+
+.actor-hostile {
+  background-color: red;
+}
+
+.actor-friendly {
+  background-color: rgb(0, 162, 255);
+}
+
+/* Keyframes for the pulsing effect */
+@keyframes selectedEffect {
+  0% { background-color: #333; }
+  50% { background-color: lightgrey; }
+  100% { background-color: #333; }
+}
+
+/* Keyframes for the pulsing effect */
+@keyframes targetedEffect {
+  0% { background-color: #333; }
+  50% { background-color: rgb(196, 139, 33); }
+  100% { background-color: #333; }
+}
+
+/* Ensuring text is visible on top of the color changes */
+#overviewTable td {
+  color: white; 
+}
+
+/* @keyframes chaserAnimation {
+  0%, 100% { outline-offset: 0px; }
+  25% { outline-offset: -10px; }
+  50% { outline-offset: -20px; }
+  75% { outline-offset: -10px; }
+}
+
+.chaser-row {
+  position: relative;
+  animation: chaserAnimation 4s linear infinite;
+  outline: 2px solid blue;
+} */
+
+
+/* .jsPanel-content {
+  background-color: rgba(51, 51, 51, 0);
+} */
