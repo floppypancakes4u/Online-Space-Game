@@ -140,7 +140,7 @@ export function setCanvasSize() {
   drawGrid();
 }
 
-export function drawGrid() {
+function drawGrid() {
   ctx.save();
 
   // Apply zoom transformation
@@ -209,17 +209,21 @@ export function initEventListeners() {
     const isShiftPressed = event.shiftKey;
     const isAltPressed = event.altKey;
 
-    console.log({
-      hoveredActor,
-      leftClick: isLeftClick,
-      rightClick: isRightClick,
-      ctrl: isCtrlPressed,
-      shift: isShiftPressed,
-      alt: isAltPressed,
-      x: lastMouseX,
-      y: lastMouseY,
+    const worldClickEvent = new CustomEvent('World:Click', {
+      detail: {
+        actor: hoveredActor,
+        leftClick: isLeftClick,
+        rightClick: isRightClick,
+        ctrl: isCtrlPressed,
+        shift: isShiftPressed,
+        alt: isAltPressed,
+        x: lastMouseX,
+        y: lastMouseY,
+      },
     });
+    document.dispatchEvent(worldClickEvent);
   });
+  
   canvas.addEventListener('contextmenu', function (event) {
     event.preventDefault();
 
@@ -366,22 +370,22 @@ export function drawReticle(options) {
   ctx.lineWidth = originalLineWidth; // Restore the original line width
 }
 
-function checkActorAndDescendants(actor) {
-  if (!actor.isUnderCursor) return;
+// function checkActorAndDescendants(actor) {
+//   if (!actor.isUnderCursor) return;
 
-  if (actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)) {
-    return actor;
-  }
+//   if (actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)) {
+//     return actor;
+//   }
 
-  for (let child of actor.children) {
-    let result = checkActorAndDescendants(child);
-    if (result) {
-      return result;
-    }
-  }
+//   for (let child of actor.children) {
+//     let result = checkActorAndDescendants(child);
+//     if (result) {
+//       return result;
+//     }
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 function drawFlashingReticle(sourceActor, targetActor) {
   let originalLineWidth = ctx.lineWidth;

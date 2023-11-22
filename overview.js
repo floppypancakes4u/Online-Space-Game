@@ -71,6 +71,27 @@ export class Overview {
     }
   }
 
+  selectActor(actor) {
+    if (this.actors[actor.ID]) {
+      this.actors[actor.ID].setSelected();
+    } else {
+      this.clearLastSelected();
+    }
+  }
+
+  clearLastSelected() {
+    if (this.selectedActorId !== null) {
+      const previousRow = document.getElementById(
+        this.selectedActorId
+      );
+      if (previousRow) {
+        previousRow.classList.remove('actor-selected');
+      }
+    }
+
+    this.selectedActorId = null;
+  }
+
   sortTable(columnIndex) {
     // Sorting logic goes here (adapted from your existing sortTable function)
   }
@@ -144,18 +165,14 @@ class ActorRow {
     this.row.classList.add('actor-targeted');
   }
 
-  select({ leftClick, rightClick, ctrl, shift, alt }) {
-    if (this.overview.selectedActorId !== null) {
-      const previousRow = document.getElementById(
-        this.overview.selectedActorId
-      );
-      if (previousRow) {
-        previousRow.classList.remove('actor-selected');
-      }
-    }
+  setSelected() {
+    this.overview.clearLastSelected();
     this.overview.selectedActorId = this.targetActor.ID;
-
     this.row.classList.add('actor-selected');
+  }
+
+  select({ leftClick, rightClick, ctrl, shift, alt }) {
+    this.setSelected();
 
     const selectedEvent = new CustomEvent('Overview:ContactSelected', {
       detail: {

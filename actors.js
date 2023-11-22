@@ -143,12 +143,17 @@ export class Actor {
     return this.currentSector && this.currentSector.isActorWithinBounds(this);
   }
 
-  isUnderCursor(mouseX, mouseY, panX, panY) {
-    let dx = mouseX - (this.x - panX);
-    let dy = mouseY - (this.y - panY);
-    let isUnder = dx * dx + dy * dy <= this.size * this.size;
+  isUnderCursor(x, y) {
+    // let dx = x - (this.x - panX);
+    // let dy = y - (this.y - panY);
+    // let isUnder = dx * dx + dy * dy <= this.size * this.size;
 
-    return isUnder;
+    //return isUnder;
+    const dx = x - this.x;
+    const dy = y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    return distance <= this.size;
   }
 
   getSpeed() {
@@ -330,20 +335,15 @@ export class Spaceship extends Actor {
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
     this.radarContacts = [];
-    this.visualContacts = [];
 
-      this.checkActorContacts(this.getRadarRange(), this.getVisualRange());
+      this.checkActorContacts(this.getRadarRange());
   }
 
   getRadarRange() {
     return 250;
   }
 
-  getVisualRange() {
-    return 450;
-  }
-
-  checkActorContacts(radarRange = 50, visualRange = 50) {
+  checkActorContacts(radarRange = 50) {
 
     for (const [ID, actor] of Object.entries(actors)) {
       const range = this.distanceTo(actor);
@@ -368,32 +368,11 @@ export class Spaceship extends Actor {
               document.dispatchEvent(event);
           }
       }
-  
-      // Check for addition to visualContacts
-      if (range <= visualRange) {
-          if (actor != this && !this.visualContacts.includes(actor)) {
-              this.visualContacts.push(actor);
-              const event = new CustomEvent('RadarContactUpdate', {
-                detail: { type: "visualContact", action: "add", actor }
-              });
-              document.dispatchEvent(event);
-          }
-      } else {
-          // Remove from visualContacts if out of range
-          const index = this.visualContacts.indexOf(actor);
-          if (index > -1) {
-              this.visualContacts.splice(index, 1);
-              const event = new CustomEvent('RadarContactUpdate', {
-                detail: { type: "visualContact", action: "remove", actor }
-              });
-              document.dispatchEvent(event);
-          }
-      }
   }
   
 
     setTimeout(() => {
-      this.checkActorContacts(this.getRadarRange(), this.getVisualRange());
+      this.checkActorContacts(this.getRadarRange());
     }, 250);
 
   }
@@ -454,7 +433,6 @@ export class Spaceship extends Actor {
 
     this.HandleShipMovement();
     // drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange(), showText: false });
-    // drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange(), showText: false });
 
     // this.radarContacts.forEach((contact) => {
     //   drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
