@@ -46,6 +46,12 @@ export class Overview {
         setInterval(clock, 1000);
       },
     });
+
+    // The UI starts after the actor is created, so make sure to grab any existing
+    // radar contacts that the actor has before we started listening for broadcasts
+    this.owningActor.radarContacts.forEach((contact) => {
+      this.addContact(contact);
+    });
   }
 
   addContact(actor) {
@@ -81,9 +87,7 @@ export class Overview {
 
   clearLastSelected() {
     if (this.selectedActorId !== null) {
-      const previousRow = document.getElementById(
-        this.selectedActorId
-      );
+      const previousRow = document.getElementById(this.selectedActorId);
       if (previousRow) {
         previousRow.classList.remove('actor-selected');
       }

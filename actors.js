@@ -336,7 +336,7 @@ export class Spaceship extends Actor {
     this.targetBody = null;
     this.radarContacts = [];
 
-      this.checkActorContacts(this.getRadarRange());
+    this.checkActorContacts(this.getRadarRange());
   }
 
   getRadarRange() {
@@ -344,37 +344,37 @@ export class Spaceship extends Actor {
   }
 
   checkActorContacts(radarRange = 50) {
-
     for (const [ID, actor] of Object.entries(actors)) {
       const range = this.distanceTo(actor);
-  
-      // Check for addition to radarContacts
-      if (range <= radarRange) {
-          if (actor != this && !this.radarContacts.includes(actor)) {
-              this.radarContacts.push(actor);
-              const event = new CustomEvent('RadarContactUpdate', {
-                detail: { type: "radarContact", action: "add", actor }
-              });
-              document.dispatchEvent(event);
+
+      if (actor != this) {
+        //console.log('range: ', range, range <= radarRange);
+        // Check for addition to radarContacts
+        if (range <= radarRange) {
+          if (!this.radarContacts.includes(actor)) {
+            this.radarContacts.push(actor);
+            const event = new CustomEvent('RadarContactUpdate', {
+              detail: { type: 'radarContact', action: 'add', actor },
+            });
+            document.dispatchEvent(event);
           }
-      } else {
+        } else {
           // Remove from radarContacts if out of range
           const index = this.radarContacts.indexOf(actor);
           if (index > -1) {
-              this.radarContacts.splice(index, 1);
-              const event = new CustomEvent('RadarContactUpdate', {
-                detail: { type: "radarContact", action: "remove", actor }
-              });
-              document.dispatchEvent(event);
+            this.radarContacts.splice(index, 1);
+            const event = new CustomEvent('RadarContactUpdate', {
+              detail: { type: 'radarContact', action: 'remove', actor },
+            });
+            document.dispatchEvent(event);
           }
+        }
       }
-  }
-  
+    }
 
     setTimeout(() => {
       this.checkActorContacts(this.getRadarRange());
     }, 250);
-
   }
 
   findRandomTarget() {

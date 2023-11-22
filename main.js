@@ -3,7 +3,7 @@ import {
   setCanvasSize,
   canvasRenderLoop,
   initEventListeners,
-  getCanvasData
+  getCanvasData,
 } from './canvas.js';
 import { SM, SectorManager } from './sectors.js';
 import {
@@ -94,7 +94,6 @@ const ASTEROID_COUNT = 100;
     SM.reduceDebugAsteroids();
   });
 
-  
   function gameLoop() {
     playerController.update();
     window.requestAnimationFrame(gameLoop);
@@ -105,6 +104,5 @@ const ASTEROID_COUNT = 100;
   // Start the game loop
   window.requestAnimationFrame(canvasRenderLoop);
 })();
-
 
 console.log('Main Loaded');
