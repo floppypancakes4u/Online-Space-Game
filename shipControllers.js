@@ -5,8 +5,9 @@ export class PlayerShipController {
   constructor(spaceship, ctx) {
     this.ship = spaceship;
     this.ctx = ctx;
+    this.selectedActor = null;
     this.initListeners();
-    this.overview = new Overview(this.ship);
+    this.overview = new Overview(this, this.ship);
   }
 
   initListeners() {
@@ -50,6 +51,15 @@ export class PlayerShipController {
         }
       }
       // Perform any action with these coordinates
+    });
+
+    document.addEventListener('Overview:ContactSelected', function(event) {
+      const { actor, leftClick, rightClick, ctrl, shift, alt } = event.detail;
+      console.log(`Overview:ContactSelected `, { actor, leftClick, rightClick, ctrl, shift, alt });
+
+      if (this.selectedActor != null) this.selectedActor.setSelected(false);
+      this.selectedActor = actor;
+      this.selectedActor.setSelected(true);
     });
   }
 

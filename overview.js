@@ -1,7 +1,7 @@
 export class Overview {
-  constructor(actor) {
+  constructor(controller, actor) {
+    this.controller = controller;
     this.owningActor = actor;
-
     this.actors = {}; // Object to store actors with their IDs
     this.selectedActorId = null; // Keep track of the selected actor
     this.initContainer();
@@ -24,7 +24,7 @@ export class Overview {
           return Math.min(500, window.innerHeight * 0.6);
         },
       },
-      animateIn: 'jsPanelFadeIn',      
+      animateIn: 'jsPanelFadeIn',
       content: `<div class="overviewArea"><table id="overviewTable"><thead><tr><th>Distance</th><th>Name</th><th>Action</th></tr></thead><tbody></tbody></table></div>`,
       onwindowresize: true,
       callback: function (panel) {
@@ -57,7 +57,7 @@ export class Overview {
   }
 
   addActorRow(actor) {
-    this.actors[actor.ID] = new ActorRow(this.owningActor, actor, this);
+    this.actors[actor.ID] = new ActorRow(this, this.owningActor, actor, this);
   }
 
   getActorRowById(id) {
@@ -79,34 +79,34 @@ export class Overview {
 }
 
 class ActorRow {
-  constructor(owningActor, actor, overview) {
+  constructor(overview, owningActor, targetActor) {
+    this.overview = overview;
     this.owningActor = owningActor;
-    this.actor = actor;
-    // this.overview = overview;
-    // this.row = this.overview.table.insertRow();
-    // // ... rest of ActorRow initialization
+    this.targetActor = targetActor;
     this.createRow();
   }
 
   createRow() {
-    this.table = document.getElementById("overviewTable").getElementsByTagName('tbody')[0];
+    this.table = document
+      .getElementById('overviewTable')
+      .getElementsByTagName('tbody')[0];
     this.row = this.table.insertRow(); //document.createElement("tr");
     this.distanceCell = this.row.insertCell(0);
     this.nameCell = this.row.insertCell(1);
     this.actionCell = this.row.insertCell(2);
 
-    this.nameCell.innerHTML = "Actor " + this.actor.ID;
-    console.log("actor: ", this.owningActor)
-    this.distanceCell.innerHTML = this.owningActor.distanceTo(this.actor);
-    this.actionCell.innerHTML = '<button onclick="removeRow(this, event)">Remove</button>';
+    this.nameCell.innerHTML = 'Actor ' + this.targetActor.ID;
+    this.distanceCell.innerHTML = this.owningActor.distanceTo(this.targetActor);
+    this.actionCell.innerHTML =
+      '<button onclick="removeRow(this, event)">Remove</button>';
 
-    this.row.id = this.actor.ID;
+    this.row.id = this.targetActor.ID;
 
-    if (this.actor.hostile && !this.actor.targeted) {
+    if (this.targetActor.hostile && !this.targetActor.targeted) {
       this.setHostile();
     }
 
-    if (this.actor.targeted && !this.actor.hostile) {
+    if (this.targetActor.targeted && !this.targetActor.hostile) {
       this.setFriendly();
     }
 
@@ -120,52 +120,68 @@ class ActorRow {
       const isShiftPressed = event.shiftKey;
       const isAltPressed = event.altKey;
 
-      this.select({leftClick: isLeftClick, rightClick: isRightClick, ctrl: isCtrlPressed, shift: isShiftPressed, alt: isAltPressed});      
+      this.select({
+        leftClick: isLeftClick,
+        rightClick: isRightClick,
+        ctrl: isCtrlPressed,
+        shift: isShiftPressed,
+        alt: isAltPressed,
+      });
     };
 
     setInterval(() => {
-      if (actors[this.actor.ID]) {
+      if (actors[this.targetActor.ID]) {
         this.updateDistance();
       }
     }, 1000);
   }
 
   setHostile() {
-    this.row.classList.add("actor-hostile");
+    this.row.classList.add('actor-hostile');
   }
 
   setFriendly() {
-    this.row.classList.add("actor-targeted");
+    this.row.classList.add('actor-targeted');
   }
 
-  select({leftClick, rightClick, ctrl, shift, alt}) {
-    console.log(`Last Row ID: ${this.selectedActorId}`)
-
-    if (this.selectedActorId !== null) {
-      const previousRow = document.getElementById(this.selectedActorId);
+  select({ leftClick, rightClick, ctrl, shift, alt }) {
+    if (this.overview.selectedActorId !== null) {
+      const previousRow = document.getElementById(
+        this.overview.selectedActorId
+      );
       if (previousRow) {
-        previousRow.classList.remove("actor-selected");
+        previousRow.classList.remove('actor-selected');
       }
     }
-    this.selectedActorId = this.actor.ID;
+    this.overview.selectedActorId = this.targetActor.ID;
 
-    console.log('Actor selected:', actors[this.actor.ID], this.actor.ID);
-    console.log({leftClick, rightClick, ctrl, shift, alt})
-    this.row.classList.add("actor-selected");
+    this.row.classList.add('actor-selected');
+
+    const selectedEvent = new CustomEvent('Overview:ContactSelected', {
+      detail: {
+        actor: this.targetActor,
+        leftClick,
+        rightClick,
+        ctrl,
+        shift,
+        alt,
+      },
+    });
+    document.dispatchEvent(selectedEvent);
   }
 
   updateDistance() {
-    this.distanceCell.innerHTML = this.actor.getDistance().toFixed(2);
+    this.distanceCell.innerHTML = this.targetActor.getDistance().toFixed(2);
   }
 
   remove() {
     // If the removed row was selected, clear the selection
-    if (this.selectedActorId === this.actor.ID) {
-      this.selectedActorId = null;
+    if (this.overview.selectedActorId === this.targetActor.ID) {
+      this.overview.selectedActorId = null;
     }
-    
+
     this.row.remove();
-    delete actors[this.actor.ID];
+    delete actors[this.targetActor.ID];
   }
 }
 

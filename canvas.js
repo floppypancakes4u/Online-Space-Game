@@ -50,12 +50,15 @@ export function drawActor(ctx, panX, panY, actor) {
     } else if (actor instanceof Spaceship) {
       drawShip(ctx, actor, panX, panY);
     }
+
+    if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
   } catch (e) {
     console.error('DrawActor Error', e);
   }
 }
 
-export function getCanvasData() {s
+export function getCanvasData() {
+  s;
   return {
     ctx,
     panX,
@@ -146,7 +149,6 @@ export function drawGrid() {
 
   ctx.strokeStyle = 'lightgrey'; // change grid line color to light grey
 
-
   // Draw the targeting reticle and dotted line
   // if (target !== null) {
   //   drawReticle(target);
@@ -175,7 +177,6 @@ export function drawGrid() {
 
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
-        //actor.draw(ctx, panX, panY);
         drawActor(ctx, panX, panY, actor);
 
         if (!hoveredActor) {
@@ -201,51 +202,35 @@ export function drawGrid() {
 export function initEventListeners() {
   window.addEventListener('resize', setCanvasSize);
   canvas.addEventListener('mousemove', mouseMove);
-  //canvas.addEventListener('mousedown', mouseDown);
-  //canvas.addEventListener('mouseup', mouseUp);
+  canvas.addEventListener('click', function (event) {
+    const isLeftClick = event.button === 0; // 0 for left button
+    const isRightClick = event.button === 2; // 2 for right button
+    const isCtrlPressed = event.ctrlKey;
+    const isShiftPressed = event.shiftKey;
+    const isAltPressed = event.altKey;
 
-  // canvas.addEventListener('contextmenu', function(event) {
-  //   event.preventDefault(); // Prevent the default context menu
-
-  //   const rect = canvas.getBoundingClientRect();
-  //   const mouseX = (event.clientX - rect.left) / zoomFactor;
-  //   const mouseY = (event.clientY - rect.top) / zoomFactor;
-
-  //   // Calculate the world coordinates considering panning
-  //   const worldX = mouseX + panX;
-  //   const worldY = mouseY + panY;
-
-
-  //   const rightClickEvent = new CustomEvent('rightClickCoordinates', {
-  //     detail: { x: worldX, y: worldY, target: hoveredActor }
-  //   });
-  //   document.dispatchEvent(rightClickEvent);
-    
-  //   // Optionally, you can do something with these coordinates
-  //   // like setting an autopilot target in your game
-  //   // yourActor.setAutopilotTarget(worldX, worldY);
-
-  //   return false; // To prevent further propagation of the event
-  // });
-
-  canvas.addEventListener('contextmenu', function(event) {
+    console.log({
+      hoveredActor,
+      leftClick: isLeftClick,
+      rightClick: isRightClick,
+      ctrl: isCtrlPressed,
+      shift: isShiftPressed,
+      alt: isAltPressed,
+      x: lastMouseX,
+      y: lastMouseY,
+    });
+  });
+  canvas.addEventListener('contextmenu', function (event) {
     event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (event.clientX - rect.left) / zoomFactor;
-    const mouseY = (event.clientY - rect.top) / zoomFactor;
-  
-    const worldX = mouseX + panX;
-    const worldY = mouseY + panY;
-  
+
     const rightClickEvent = new CustomEvent('rightClickCoordinates', {
-      detail: { x: worldX, y: worldY, target: hoveredActor }
+      detail: { x: lastMouseX, y: lastMouseY, target: hoveredActor },
     });
     document.dispatchEvent(rightClickEvent);
-  
+
     return false; // To prevent further propagation of the event
   });
 
-  
   canvas.addEventListener('wheel', (e) => {
     // Prevent the default scroll behavior
     e.preventDefault();
@@ -264,33 +249,6 @@ export function initEventListeners() {
   });
 }
 
-// export function mouseMove(e) {
-//   const rect = canvas.getBoundingClientRect();
-//   const mouseX = (e.clientX - rect.left) / zoomFactor;
-//   const mouseY = (e.clientY - rect.top) / zoomFactor;
-
-//   // Calculate the world coordinates considering panning
-//   const worldX = mouseX + panX;
-//   const worldY = mouseY + panY;
-
-//   coordDisplay.textContent = `X: ${worldX.toFixed(2)}, Y: ${worldY.toFixed(2)}`;
-
-//   // if (isPanning) {
-//   //   const panSpeed = 1.5; // You can adjust this value to your preference
-//   //   panX += panSpeed * (lastMouseX - mouseX);
-//   //   panY += panSpeed * (lastMouseY - mouseY);
-//   // }
-
-//   lastMouseX = mouseX;
-//   lastMouseY = mouseY;
-
-//   //drawGrid();
-
-//   for (let sector of sectors) {
-//     sector.isHovered = sector.isMouseWithin(mouseX, mouseY, panX, panY);
-//   }
-// }
-
 export function mouseMove(e) {
   const rect = canvas.getBoundingClientRect();
   const mouseX = (e.clientX - rect.left) / zoomFactor;
@@ -298,24 +256,14 @@ export function mouseMove(e) {
 
   const worldX = mouseX + panX;
   const worldY = mouseY + panY;
-  coordDisplay.textContent = `X: ${worldX.toFixed(2)}, Y: ${worldY.toFixed(2)}`;
 
-  lastMouseX = mouseX;
-  lastMouseY = mouseY;
+  lastMouseX = worldX;
+  lastMouseY = worldY;
+
+  coordDisplay.textContent = `X: ${lastMouseX.toFixed(
+    2
+  )}, Y: ${lastMouseY.toFixed(2)}`;
 }
-
-
-// export function mouseDown(e) {
-//   if (e.button === 2) {
-//     isPanning = true;
-//   }
-// }
-
-// export function mouseUp(e) {
-//   if (e.button === 2) {
-//     isPanning = false;
-//   }
-// }
 
 export function drawReticle(options) {
   const {
@@ -324,11 +272,9 @@ export function drawReticle(options) {
     style = 'solid',
     size = actor.size + 10,
     shape = 'circle',
-    showText = true
+    showText = true,
   } = options;
 
-  if (!actor) console.log("drawReticle: ", options);
-  
   let originalLineWidth = ctx.lineWidth; // Save the original line width
 
   // Set line style
@@ -391,31 +337,31 @@ export function drawReticle(options) {
 
   if (showText) {
     ctx.font = '18px Arial';
-  ctx.fillStyle = 'white';
-  let textX = actor.x - panX + size + 15;
-  let textY = actor.y - panY;
+    ctx.fillStyle = 'white';
+    let textX = actor.x - panX + size + 15;
+    let textY = actor.y - panY;
 
-  // Adjust text position if it goes beyond the canvas boundaries
-  const textWidth = 200; // Approx width of the text
-  const textHeight = 60; // Height of the text
-  textX = Math.min(textX, canvas.width - textWidth);
-  textY = Math.min(Math.max(textY, textHeight), canvas.height - textHeight);
+    // Adjust text position if it goes beyond the canvas boundaries
+    const textWidth = 200; // Approx width of the text
+    const textHeight = 60; // Height of the text
+    textX = Math.min(textX, canvas.width - textWidth);
+    textY = Math.min(Math.max(textY, textHeight), canvas.height - textHeight);
 
-  ctx.fillText(`ID: ${actor.ID}`, textX, textY - 20);
-  ctx.fillText(`Type: ${actor.type}`, textX, textY);
-  ctx.fillText(`Size: ${actor.size}`, textX, textY + 20); // add 20 pixels for each new line
-  ctx.fillText(`Speed: ${actor.getSpeed().toFixed(3)}`, textX, textY + 40); // add 20 pixels for each new line
-  ctx.fillText(`X: ${actor.x.toFixed(3)}`, textX, textY + 60); // add 20 pixels for each new line
-  ctx.fillText(`Y: ${actor.y.toFixed(3)}`, textX, textY + 80); // add 20 pixels for each new line
-  ctx.fillText(`Sector: ${actor.currentSector.name}`, textX, textY + 120); // add 20 pixels for each new line
-  if (actor instanceof Planet) {
-    ctx.fillText(
-      `Orbit Speed: ${actor.orbitSpeed.toFixed(3)}`,
-      textX,
-      textY + 140
-    ); // .toFixed(3) to round to 3 decimal places
+    ctx.fillText(`ID: ${actor.ID}`, textX, textY - 20);
+    ctx.fillText(`Type: ${actor.type}`, textX, textY);
+    ctx.fillText(`Size: ${actor.size}`, textX, textY + 20); // add 20 pixels for each new line
+    ctx.fillText(`Speed: ${actor.getSpeed().toFixed(3)}`, textX, textY + 40); // add 20 pixels for each new line
+    ctx.fillText(`X: ${actor.x.toFixed(3)}`, textX, textY + 60); // add 20 pixels for each new line
+    ctx.fillText(`Y: ${actor.y.toFixed(3)}`, textX, textY + 80); // add 20 pixels for each new line
+    ctx.fillText(`Sector: ${actor.currentSector.name}`, textX, textY + 120); // add 20 pixels for each new line
+    if (actor instanceof Planet) {
+      ctx.fillText(
+        `Orbit Speed: ${actor.orbitSpeed.toFixed(3)}`,
+        textX,
+        textY + 140
+      ); // .toFixed(3) to round to 3 decimal places
+    }
   }
-  }  
 
   ctx.lineWidth = originalLineWidth; // Restore the original line width
 }

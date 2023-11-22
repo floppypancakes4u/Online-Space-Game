@@ -91,7 +91,12 @@ export class Actor {
     this.isThrusting = false;
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
+    this.selected = false;
     actors[this.ID] = this;
+  }
+
+  setSelected(selected) {
+    this.selected = selected;
   }
 
   distanceTo(otherActor) {
@@ -448,12 +453,12 @@ export class Spaceship extends Actor {
     }
 
     this.HandleShipMovement();
-    drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange(), showText: false });
-    drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange(), showText: false });
+    // drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange(), showText: false });
+    // drawReticle({ actor: this, color: 'orange', style: 'dashed', size: this.getVisualRange(), showText: false });
 
-    this.radarContacts.forEach((contact) => {
-      drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
-    });
+    // this.radarContacts.forEach((contact) => {
+    //   drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
+    // });
 
     // Other existing code...
   }
