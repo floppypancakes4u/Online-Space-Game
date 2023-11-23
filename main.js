@@ -98,6 +98,7 @@ const ASTEROID_COUNT = 100;
   });
 
   function gameLoop() {
+    //requestAnimationFrame(getDeltaTime);
     playerController.update();
     window.requestAnimationFrame(gameLoop);
   }
@@ -109,15 +110,19 @@ const ASTEROID_COUNT = 100;
 })();
 
 function getDeltaTime(currentTime) {
-  
   // Calculate the time difference in milliseconds between the current frame and the previous frame
-  deltaTime = currentTime - lastFrameTime;
+  const deltaTime = currentTime - lastFrameTime;
+
+  // Update any animations or game logic using deltaSeconds
+  if (deltaTime > 0) {
+    console.log('Delta Time: ', deltaTime);
+  }
+
+  // Store the current timestamp as the lastFrameTime for the next frame
+  lastFrameTime = currentTime;
 
   // Request the next frame
   requestAnimationFrame(getDeltaTime);
 }
-
-// Start the animation loop by requesting the first frame
-requestAnimationFrame(getDeltaTime);
 
 console.log('Main Loaded');
