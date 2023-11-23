@@ -15,6 +15,8 @@ export const actorTypes = {
 };
 export var actors = {}; // Array to store all actors
 
+
+
 export function initActors() {
   generateAsteroidShapes();
 }
@@ -92,9 +94,14 @@ export class Actor {
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
     this.selected = false;
+    this.maxLifetime = 0;
     actors[this.ID] = this;
   }
 
+  setMaxLifetime(lifetime) {
+    this.maxLifetime = 0;
+  }
+  
   setSelected(selected) {
     this.selected = selected;
   }
@@ -276,6 +283,24 @@ export class Actor {
     const decelerationFactor = 0.95;
     this.velocity.x *= decelerationFactor;
     this.velocity.y *= decelerationFactor;
+  }
+}
+
+export class Equipment extends Actor {
+  constructor(x, y, size, color) {
+    super(x, y, size, color);
+  }
+}
+
+export class Hardpoint extends Actor {
+  constructor(x, y, size, color) {
+    super(x, y, size, color);
+  }
+}
+
+export class Projectile extends Actor {
+  constructor(x, y, size, color) {
+    super(x, y, size, color);
   }
 }
 

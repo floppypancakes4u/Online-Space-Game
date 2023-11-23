@@ -75,6 +75,19 @@ export function setCamera(x, y) {
   panY = y - centerY;
 }
 
+function drawBullet(ctx, actor, panX, panY, bulletLength = 15, bulletWidth = 2) {
+  ctx.save();
+  ctx.translate(actor.x - panX, actor.y - panY);
+  ctx.rotate(actor.rotation);
+
+  const BulletPath = new Path2D();
+  // Create the bullet shape as a rectangle
+  BulletPath.rect(0, -bulletWidth / 2, bulletLength, bulletWidth);
+
+  ctx.fill(BulletPath);
+  ctx.restore();
+}
+
 function drawShip(ctx, actor, panX, panY) {
   ctx.save();
   ctx.translate(actor.x - panX, actor.y - panY);
@@ -175,6 +188,7 @@ function drawGrid() {
     drawBorder(sector, sector.isHovered);
     sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
+    drawBullet(ctx, {x: 250, y: 250, rotation: 0}, 0, 0)
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         drawActor(ctx, panX, panY, actor);
@@ -223,7 +237,7 @@ export function initEventListeners() {
     });
     document.dispatchEvent(worldClickEvent);
   });
-  
+
   canvas.addEventListener('contextmenu', function (event) {
     event.preventDefault();
 

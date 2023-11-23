@@ -18,7 +18,7 @@ export class Overview {
         '<i class="fal fa-clock mr-2"></i><span class="clock">loading ...</span>',
       panelSize: {
         width: () => {
-          return Math.min(800, window.innerWidth * 0.9);
+          return Math.min(300, window.innerWidth * 0.9);
         },
         height: () => {
           return Math.min(500, window.innerHeight * 0.6);
