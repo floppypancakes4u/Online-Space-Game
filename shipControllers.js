@@ -16,6 +16,7 @@ export class PlayerShipController {
       a: false,
       s: false,
       d: false,
+      ' ': false,
     };
 
     window.addEventListener('keydown', (event) => {
@@ -108,6 +109,7 @@ export class PlayerShipController {
     this.ship.stopThrust(this.keys.s);
     this.ship.rotateLeft(this.keys.a);
     this.ship.rotateRight(this.keys.d);
+    this.ship.space(this.keys[" "])
 
     if (this.keys.w || this.keys.s || this.keys.a || this.keys.d)
       this.ship.disableAutopilot();

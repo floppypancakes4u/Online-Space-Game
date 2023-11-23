@@ -26,6 +26,9 @@ let panX = 0;
 let panY = 0;
 var hoveredActor = null;
 
+let lastFrameTime = 0; // Variable to store the timestamp of the last frame
+var deltaTime = 0;
+
 let isPanning = false;
 let lastMouseX, lastMouseY;
 let zoomFactor = 1.0;
@@ -75,7 +78,14 @@ export function setCamera(x, y) {
   panY = y - centerY;
 }
 
-function drawBullet(ctx, actor, panX, panY, bulletLength = 15, bulletWidth = 2) {
+function drawBullet(
+  ctx,
+  actor,
+  panX,
+  panY,
+  bulletLength = 15,
+  bulletWidth = 2
+) {
   ctx.save();
   ctx.translate(actor.x - panX, actor.y - panY);
   ctx.rotate(actor.rotation);
@@ -188,7 +198,7 @@ function drawGrid() {
     drawBorder(sector, sector.isHovered);
     sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
-    drawBullet(ctx, {x: 250, y: 250, rotation: 0}, 0, 0)
+    drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         drawActor(ctx, panX, panY, actor);
@@ -503,7 +513,7 @@ export function update() {
   }
 
   for (let sector of sectors) {
-    sector.update();
+    sector.update(deltaTime);
   }
 
   // Update Dev stuff
@@ -514,6 +524,24 @@ export function update() {
 export function canvasRenderLoop() {
   update();
   window.requestAnimationFrame(canvasRenderLoop);
+  window.requestAnimationFrame(getDeltaTime);
+}
+
+function getDeltaTime(currentTime) {
+  // Calculate the time difference in milliseconds between the current frame and the previous frame
+  const dt = currentTime - lastFrameTime;
+
+  // Update any animations or game logic using deltaSeconds
+  if (dt > 0) {
+    deltaTime = dt;
+    //console.log('Delta Time: ', deltaTime);
+  }
+
+  // Store the current timestamp as the lastFrameTime for the next frame
+  lastFrameTime = currentTime;
+
+  // Request the next frame
+  requestAnimationFrame(getDeltaTime);
 }
 
 coordDisplay.textContent = `X: 0, Y: 0`;

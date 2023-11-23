@@ -16,9 +16,6 @@ import {
 } from './actors.js';
 import { PlayerShipController } from './shipControllers.js';
 
-let lastFrameTime = 0; // Variable to store the timestamp of the last frame
-var deltaTime = 0;
-
 const ASTEROID_COUNT = 100;
 (function () {
   // Main canvas setup
@@ -108,21 +105,5 @@ const ASTEROID_COUNT = 100;
   // Start the game loop
   window.requestAnimationFrame(canvasRenderLoop);
 })();
-
-function getDeltaTime(currentTime) {
-  // Calculate the time difference in milliseconds between the current frame and the previous frame
-  const deltaTime = currentTime - lastFrameTime;
-
-  // Update any animations or game logic using deltaSeconds
-  if (deltaTime > 0) {
-    console.log('Delta Time: ', deltaTime);
-  }
-
-  // Store the current timestamp as the lastFrameTime for the next frame
-  lastFrameTime = currentTime;
-
-  // Request the next frame
-  requestAnimationFrame(getDeltaTime);
-}
 
 console.log('Main Loaded');

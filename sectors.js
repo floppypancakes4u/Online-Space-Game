@@ -285,9 +285,9 @@ export class Sector {
     ); // Adjusted y position for the second line
   }
 
-  update() {
+  update(deltaTime) {
     for (const [key, actor] of this.actors) {
-      actor.update();
+      actor.update(deltaTime);
     }
   }
 }

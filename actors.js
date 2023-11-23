@@ -89,6 +89,7 @@ export class Actor {
     this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`;
     this.velocity = { x: 0, y: 0 };
     this.isThrusting = false;
+    this.spacePressed = false;
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
     this.selected = false;
@@ -143,6 +144,10 @@ export class Actor {
   stopThrust(pressed) {
     this.isBreaking = pressed;
   }
+  
+  space(pressed) {
+    this.spacePressed = pressed;
+  }
 
   isInCurrentSector() {
     return this.currentSector && this.currentSector.isActorWithinBounds(this);
@@ -195,17 +200,17 @@ export class Actor {
     }
   }
 
-  update() {
-    this.customUpdate(); // A method for additional updates specific to the actor type
+  update(deltaTime) {
+    this.customUpdate(deltaTime); // A method for additional updates specific to the actor type
 
-    for (let child of this.children) {
-      child.update();
-    }
+    // for (let child of this.children) {
+    //   child.update();
+    // }
 
     this.movementCheck();
   }
 
-  customUpdate() {
+  customUpdate(deltaTime) {
     // Default implementation does nothing, to be overridden by subclasses
   }
 
@@ -315,7 +320,7 @@ export class Projectile extends Actor {
     this.y += this.velocity.y;
   }
 
-  customUpdate() {
+  customUpdate(deltaTime) {
     this.HandleShipMovement();
   }
 }
@@ -343,16 +348,16 @@ export class Planet extends Actor {
     this.angle = Math.random() * 2 * Math.PI; // Start at a random angle
   }
 
-  customUpdate() {
+  customUpdate(deltaTime) {
     // Move in a circle around the parent actor
     this.angle += this.orbitSpeed;
     this.x = this.parent.x + this.orbitRadius * Math.cos(this.angle);
     this.y = this.parent.y + this.orbitRadius * Math.sin(this.angle);
 
     // Update all children
-    for (let child of this.children) {
-      child.update();
-    }
+    // for (let child of this.children) {
+    //   child.update();
+    // }
   }
 }
 
@@ -467,12 +472,19 @@ export class Spaceship extends Actor {
     this.y += this.velocity.y;
   }
 
-  customUpdate() {
+  handleShipEquipment(deltaTime) {
+    if (this.spacePressed) {
+      console.log("space pressed")
+    }
+  }
+
+  customUpdate(deltaTime) {
     if (this.autopilot) {
       this.navigateTowardsTarget();
     }
 
     this.HandleShipMovement();
+    this.handleShipEquipment(deltaTime);
     // drawReticle({ actor: this, color: 'yellow', style: 'dotted', size: this.getRadarRange(), showText: false });
 
     // this.radarContacts.forEach((contact) => {
