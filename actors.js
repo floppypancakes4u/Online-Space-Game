@@ -15,8 +15,6 @@ export const actorTypes = {
 };
 export var actors = {}; // Array to store all actors
 
-
-
 export function initActors() {
   generateAsteroidShapes();
 }
@@ -101,7 +99,7 @@ export class Actor {
   setMaxLifetime(lifetime) {
     this.maxLifetime = 0;
   }
-  
+
   setSelected(selected) {
     this.selected = selected;
   }
@@ -299,8 +297,26 @@ export class Hardpoint extends Actor {
 }
 
 export class Projectile extends Actor {
-  constructor(x, y, size, color) {
+  constructor(x, y, size, color, speed) {
     super(x, y, size, color);
+    this.speed = speed;
+  }
+
+  HandleShipMovement() {
+    // Apply rotation
+    this.rotation %= Math.PI * 2;
+
+    // Apply thrust in the direction of rotation
+    this.velocity.x += Math.cos(this.rotation) * this.speed;
+    this.velocity.y += Math.sin(this.rotation) * this.speed;
+
+    // Update position based on the current velocity
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+  }
+
+  customUpdate() {
+    this.HandleShipMovement();
   }
 }
 
