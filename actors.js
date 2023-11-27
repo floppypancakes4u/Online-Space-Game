@@ -447,7 +447,6 @@ export class Spaceship extends Actor {
   }
 
   addEquipment(newEquipment) {
-    console.log('newEquipment', newEquipment);
     this.equipment.set(newEquipment.id, newEquipment);
   }
 
@@ -547,7 +546,7 @@ export class Spaceship extends Actor {
     // }
     for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
       selectedEquipment.setActive(this.spacePressed);
-      //console.log('space pressed');
+      console.log('space pressed for ', selectedEquipment);
     }
   }
 
