@@ -332,17 +332,17 @@ export class ProjectileTurret extends WeaponHardpoint {
     console.log(this);
   }
 
-  setActive() {
-    if (this.activeEventHandler === null) {
-      this.activeEventHandler = setInterval(() => {
-        this.fireWeapon();
-      }, this.recoil);
+  setActive(active) {
+    if (active) {
+      if (this.activeEventHandler === null) {
+        this.activeEventHandler = setInterval(() => {
+          this.fireWeapon();
+        }, this.recoil);
+      }
+    } else {
+      clearInterval(this.activeEventHandler);
+      this.activeEventHandler = null;
     }
-  }
-
-  setInactive() {
-    clearInterval(this.activeEventHandler);
-    this.activeEventHandler = null;
   }
 
   fireWeapon() {
@@ -358,6 +358,8 @@ export class Projectile extends Actor {
     this.bulletLength = bulletLength;
     this.bulletWidth = bulletWidth;
     this.speed = speed;
+
+    console.log("New Projectile")
   }
 
   HandleMovement() {
@@ -534,8 +536,15 @@ export class Spaceship extends Actor {
   }
 
   handleShipEquipment(deltaTime) {
-    if (this.spacePressed) {
-      console.log('space pressed');
+    // if (this.spacePressed) {
+    //   for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
+    //     selectedEquipment.setActive(this.spacePressed);
+    //     //console.log('space pressed');
+    //   }
+    // }
+    for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
+      selectedEquipment.setActive(this.spacePressed);
+      //console.log('space pressed');
     }
   }
 
