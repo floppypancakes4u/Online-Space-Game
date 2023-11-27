@@ -439,7 +439,7 @@ export class Spaceship extends Actor {
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
     this.radarContacts = [];
-    this.equipment = new Map();
+    this.equipment = {};
 
     this.addEquipment(new ProjectileTurret(x, y, 1, 'white', {}));
 
@@ -447,7 +447,7 @@ export class Spaceship extends Actor {
   }
 
   addEquipment(newEquipment) {
-    this.equipment.set(newEquipment.id, newEquipment);
+    this.equipment[newEquipment.id] = newEquipment;
   }
 
   getRadarRange() {
@@ -546,8 +546,10 @@ export class Spaceship extends Actor {
     // }
     for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
       selectedEquipment.setActive(this.spacePressed);
-      console.log('space pressed for ', selectedEquipment);
+      //console.log('space pressed for ', selectedEquipment);
     }
+
+    if (this.spacePressed) console.log(this.equipment)
   }
 
   customUpdate(deltaTime) {
