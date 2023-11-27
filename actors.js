@@ -291,7 +291,7 @@ export class Actor {
 
 export class Equipment extends Actor {
   constructor(x, y, size, color) {
-    super(x, y, size, color);
+    super(x, y, size, color); 
     this.activeEventHandler = null;
   }
 
@@ -300,20 +300,20 @@ export class Equipment extends Actor {
   deactivate() {}
 }
 
-export class Hardpoint extends Actor {
+export class Hardpoint extends Equipment {
   constructor(x, y, size, color) {
     super(x, y, size, color);
   }
 }
 
-export class WeaponHardpoint extends Actor {
+export class WeaponHardpoint extends Hardpoint {
   constructor(x, y, size, color) {
     super(x, y, size, color);
   }
 }
 
 export class ProjectileTurret extends WeaponHardpoint {
-  constructor(x, y, size, color, data, ID) {
+  constructor(x, y, size, color, data) {
     super(x, y, size, color);
     const {
       amount = 1,
@@ -348,8 +348,8 @@ export class ProjectileTurret extends WeaponHardpoint {
   }
 
   fireWeapon() {
-    new Projectile(x, y, 10, 'white', 10);
-    console.log("fired weapon")
+    new Projectile(this.x, this.y, 10, 'white', 10);
+    console.log("fired weapon", {x: this.x, y: this.y})
   }
 }
 
@@ -447,7 +447,7 @@ export class Spaceship extends Actor {
   }
 
   addEquipment(newEquipment) {
-    this.equipment[newEquipment.id] = newEquipment;
+    this.equipment[newEquipment.ID] = newEquipment;
   }
 
   getRadarRange() {
@@ -459,7 +459,6 @@ export class Spaceship extends Actor {
       const range = this.distanceTo(actor);
 
       if (actor != this) {
-        //console.log('range: ', range, range <= radarRange);
         // Check for addition to radarContacts
         if (range <= radarRange) {
           if (!this.radarContacts.includes(actor)) {
@@ -541,15 +540,11 @@ export class Spaceship extends Actor {
     // if (this.spacePressed) {
     //   for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
     //     selectedEquipment.setActive(this.spacePressed);
-    //     //console.log('space pressed');
     //   }
     // }
     for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
       selectedEquipment.setActive(this.spacePressed);
-      //console.log('space pressed for ', selectedEquipment);
     }
-
-    if (this.spacePressed) console.log(this.equipment)
   }
 
   customUpdate(deltaTime) {

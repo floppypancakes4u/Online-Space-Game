@@ -52,6 +52,9 @@ export function drawActor(ctx, panX, panY, actor) {
       drawSun(ctx, actor, panX, panY);
     } else if (actor instanceof Spaceship) {
       drawShip(ctx, actor, panX, panY);
+    } else if (actor instanceof Projectile) {
+      drawBullet(ctx, actor, panX, panY);
+      console.log("drawing bullet", actor)
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
@@ -83,8 +86,8 @@ function drawBullet(
   actor,
   panX,
   panY,
-  bulletLength = 15,
-  bulletWidth = 2
+  bulletLength = actor.bulletLength,
+  bulletWidth = actor.bulletWidth
 ) {
   ctx.save();
   ctx.translate(actor.x - panX, actor.y - panY);
@@ -198,7 +201,7 @@ function drawGrid() {
     drawBorder(sector, sector.isHovered);
     sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
-    drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
+    //drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
     
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
