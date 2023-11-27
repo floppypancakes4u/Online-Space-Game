@@ -5,6 +5,7 @@ import {
   Planet,
   Asteroid,
   Spaceship,
+  Projectile,
   actorTypes,
 } from './actors.js';
 

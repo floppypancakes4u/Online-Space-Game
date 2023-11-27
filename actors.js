@@ -291,7 +291,7 @@ export class Actor {
 
 export class Equipment extends Actor {
   constructor(x, y, size, color) {
-    super(x, y, size, color); 
+    super(x, y, size, color);
     this.activeEventHandler = null;
   }
 
@@ -320,6 +320,9 @@ export class ProjectileTurret extends WeaponHardpoint {
       recoil = 0.05,
       range = 1000, // How far the projectile will go before being self-destroyed
       accuracy = 0.05, // Percentage of accuracy at max range
+      offsetX = 5,
+      offsetY = 5,
+      existsInWorld = false,
     } = data;
     this.ID = `${this.constructor.name}-${Math.floor(
       Math.random() * 10000
@@ -328,8 +331,17 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.amount = amount;
     this.range = range;
     this.accuracy = accuracy;
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
+    this.existsInWorld = existsInWorld;
 
     console.log(this);
+  }
+
+  setAttachedWorldPosition(parentActor) {
+    if (!this.existsInWorld) return;
+    this.x = parentActor.x + this.offsetX;
+    this.y = parentActor.y + this.offsetY;
   }
 
   setActive(active) {
@@ -339,7 +351,7 @@ export class ProjectileTurret extends WeaponHardpoint {
           this.fireWeapon();
         }, this.recoil);
 
-        console.log("Activated Turret");
+        console.log('Activated Turret');
       }
     } else {
       clearInterval(this.activeEventHandler);
@@ -349,7 +361,6 @@ export class ProjectileTurret extends WeaponHardpoint {
 
   fireWeapon() {
     new Projectile(this.x, this.y, 10, 'white', 10);
-    console.log("fired weapon", {x: this.x, y: this.y})
   }
 }
 
@@ -362,7 +373,7 @@ export class Projectile extends Actor {
     this.bulletWidth = bulletWidth;
     this.speed = speed;
 
-    console.log("New Projectile")
+    console.log('New Projectile', this );
   }
 
   HandleMovement() {
@@ -441,7 +452,7 @@ export class Spaceship extends Actor {
     this.radarContacts = [];
     this.equipment = {};
 
-    this.addEquipment(new ProjectileTurret(x, y, 1, 'white', {}));
+    this.addEquipment(new ProjectileTurret(x, y, 1, 'white', { offsetX: 5, existsInWorld: true }));
 
     this.checkActorContacts(this.getRadarRange());
   }
@@ -560,7 +571,9 @@ export class Spaceship extends Actor {
     //   drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
     // });
 
-    // Other existing code...
+    for (const [ID, actor] of Object.entries(this.equipment)) {
+      actor.setAttachedWorldPosition(this);
+    }
   }
 }
 
