@@ -37,6 +37,18 @@ let zoomFactor = 1.0;
 
 const pathDataMap = new Map();
 
+function createSpaceshipPath() {
+  const spaceshipPath = new Path2D();
+  spaceshipPath.moveTo(-10, -10);
+  spaceshipPath.lineTo(10, 0);
+  spaceshipPath.lineTo(-10, 10);
+  spaceshipPath.closePath();
+
+  pathDataMap.set("shuttle", { spaceshipPath, "aqua" });
+}
+
+createSpaceshipPath() // Eventually this needs to support scales if Phaser doesn't do it automagically
+
 export function savePathData(instance, id, scale, pathData, color) {
   if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
 }
@@ -103,33 +115,45 @@ function drawBullet(
 }
 
 function drawShip(ctx, actor, panX, panY) {
+  // ctx.save();
+  // ctx.translate(actor.x - panX, actor.y - panY);
+  // ctx.rotate(actor.rotation);
+
+  // // Draw spaceship shape
+  // ctx.beginPath();
+  // ctx.moveTo(-10, -10);
+  // ctx.lineTo(10, 0);
+  // ctx.lineTo(-10, 10);
+  // ctx.closePath();
+  // ctx.fillStyle = actor.color;
+  // ctx.fill();
+
+  // // Draw direction indicator line
+  // ctx.beginPath();
+  // ctx.moveTo(10, 0); // Starting point of the line
+  // ctx.lineTo(20, 0); // Ending point of the line
+  // ctx.strokeStyle = 'white';
+  // ctx.lineWidth = 2;
+  // ctx.stroke();
+
+  // ctx.restore(); 
+  const key = "shuttle";
+  const pathData = pathDataMap.get(key);
+
+  if (!pathData) {
+    console.error(`Path data not found for key: ${key}`);
+    console.error('asteroid: ', actor);
+    return;
+  }
+
   ctx.save();
-  ctx.translate(actor.x - panX, actor.y - panY);
-  ctx.rotate(actor.rotation);
-
-  // Draw spaceship shape
-  ctx.beginPath();
-  ctx.moveTo(-10, -10);
-  ctx.lineTo(10, 0);
-  ctx.lineTo(-10, 10);
-  ctx.closePath();
-  ctx.fillStyle = actor.color;
-  ctx.fill();
-
-  // Draw direction indicator line
-  ctx.beginPath();
-  ctx.moveTo(10, 0); // Starting point of the line
-  ctx.lineTo(20, 0); // Ending point of the line
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
+  ctx.translate(
+    (actor.x - panX) * zoomFactor,
+    (actor.y - panY) * zoomFactor
+  );
+  ctx.fillStyle = pathData.color;
+  ctx.fill(new Path2D(pathData.path));
   ctx.restore();
-
-  // Draw all children
-  // for (let child of this.children) {
-  //   child.draw(ctx, panX, panY);
-  // }
 }
 
 function drawSun(ctx, sun, panX, panY) {
@@ -486,28 +510,28 @@ function adjustColor(color, factor) {
   return `rgb(${adjustedR},${adjustedG},${adjustedB})`;
 }
 
-function drawBorder(sector, isHovered) {
-  if (sector.shouldDraw()) {
-    const scaledX = (sector.x - panX) * zoomFactor + 1;
-    const scaledY = (sector.y - panY) * zoomFactor + 1;
-    const scaledWidth = sector.width * zoomFactor - 2;
-    const scaledHeight = sector.height * zoomFactor - 2;
-    const scaledLineWidth = 2 * zoomFactor;
+// function drawBorder(sector, isHovered) {
+//   if (sector.shouldDraw()) {
+//     const scaledX = (sector.x - panX) * zoomFactor + 1;
+//     const scaledY = (sector.y - panY) * zoomFactor + 1;
+//     const scaledWidth = sector.width * zoomFactor - 2;
+//     const scaledHeight = sector.height * zoomFactor - 2;
+//     const scaledLineWidth = 2 * zoomFactor;
 
-    if (drawnSectors.has(sector)) {
-      ctx.strokeStyle = adjustColor(sector.borderColor, 0.8);
-    } else {
-      ctx.strokeStyle = isHovered
-        ? adjustColor(sector.borderColor, 1.5)
-        : sector.borderColor;
-      drawnSectors.add(sector);
-    }
-    ctx.lineWidth = scaledLineWidth;
+//     if (drawnSectors.has(sector)) {
+//       ctx.strokeStyle = adjustColor(sector.borderColor, 0.8);
+//     } else {
+//       ctx.strokeStyle = isHovered
+//         ? adjustColor(sector.borderColor, 1.5)
+//         : sector.borderColor;
+//       drawnSectors.add(sector);
+//     }
+//     ctx.lineWidth = scaledLineWidth;
 
-    // Adjusted to draw the rectangle 1 pixel smaller on each side (after scaling)
-    ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
-  }
-}
+//     // Adjusted to draw the rectangle 1 pixel smaller on each side (after scaling)
+//     ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+//   }
+// }
 
 const times = [];
 const maxSamples = 100;
