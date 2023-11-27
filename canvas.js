@@ -199,6 +199,7 @@ function drawGrid() {
     sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
     drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
+    
     for (const [key, actor] of sector.actors) {
       if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
         drawActor(ctx, panX, panY, actor);

@@ -144,7 +144,7 @@ export class Actor {
   stopThrust(pressed) {
     this.isBreaking = pressed;
   }
-  
+
   space(pressed) {
     this.spacePressed = pressed;
   }
@@ -292,7 +292,12 @@ export class Actor {
 export class Equipment extends Actor {
   constructor(x, y, size, color) {
     super(x, y, size, color);
+    this.activeEventHandler = null;
   }
+
+  activate() {}
+
+  deactivate() {}
 }
 
 export class Hardpoint extends Actor {
@@ -301,13 +306,61 @@ export class Hardpoint extends Actor {
   }
 }
 
-export class Projectile extends Actor {
-  constructor(x, y, size, color, speed) {
+export class WeaponHardpoint extends Actor {
+  constructor(x, y, size, color) {
     super(x, y, size, color);
+  }
+}
+
+export class ProjectileTurret extends WeaponHardpoint {
+  constructor(x, y, size, color, data, ID) {
+    super(x, y, size, color);
+    const {
+      amount = 1,
+      recoil = 0.05,
+      range = 1000, // How far the projectile will go before being self-destroyed
+      accuracy = 0.05, // Percentage of accuracy at max range
+    } = data;
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
+    this.recoil = recoil; // How long between shots/bursts
+    this.amount = amount;
+    this.range = range;
+    this.accuracy = accuracy;
+
+    console.log(this);
+  }
+
+  setActive() {
+    if (this.activeEventHandler === null) {
+      this.activeEventHandler = setInterval(() => {
+        this.fireWeapon();
+      }, this.recoil);
+    }
+  }
+
+  setInactive() {
+    clearInterval(this.activeEventHandler);
+    this.activeEventHandler = null;
+  }
+
+  fireWeapon() {
+    new Projectile(x, y, 10, 'white', 10);
+  }
+}
+
+export class Projectile extends Actor {
+  constructor(x, y, size, color, data) {
+    super(x, y, size, color);
+    const { bulletLength = 15, bulletWidth = 2, speed = 10 } = data;
+
+    this.bulletLength = bulletLength;
+    this.bulletWidth = bulletWidth;
     this.speed = speed;
   }
 
-  HandleShipMovement() {
+  HandleMovement() {
     // Apply rotation
     this.rotation %= Math.PI * 2;
 
@@ -321,7 +374,7 @@ export class Projectile extends Actor {
   }
 
   customUpdate(deltaTime) {
-    this.HandleShipMovement();
+    this.HandleMovement();
   }
 }
 
@@ -381,8 +434,16 @@ export class Spaceship extends Actor {
     this.acceleration = { x: 0, y: 0 };
     this.targetBody = null;
     this.radarContacts = [];
+    this.equipment = new Map();
+
+    this.addEquipment(new ProjectileTurret(x, y, 1, 'white', {}));
 
     this.checkActorContacts(this.getRadarRange());
+  }
+
+  addEquipment(newEquipment) {
+    console.log('newEquipment', newEquipment);
+    this.equipment.set(newEquipment.id, newEquipment);
   }
 
   getRadarRange() {
@@ -474,7 +535,7 @@ export class Spaceship extends Actor {
 
   handleShipEquipment(deltaTime) {
     if (this.spacePressed) {
-      console.log("space pressed")
+      console.log('space pressed');
     }
   }
 
