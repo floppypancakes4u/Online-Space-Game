@@ -94,7 +94,12 @@ export class Actor {
     this.targetPosition = { x: 0, y: 0 };
     this.selected = false;
     this.maxLifetime = 0;
+    this.path = null;
     actors[this.ID] = this;
+  }
+
+  setPath(path) {
+    this.path = path;
   }
 
   destroy() {
@@ -115,6 +120,10 @@ export class Actor {
     const dx = this.x - otherActor.x;
     const dy = this.y - otherActor.y;
     return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  collidesWith(otherActor) {
+
   }
 
   setAutopilotTarget(target, x = null, y = null) {

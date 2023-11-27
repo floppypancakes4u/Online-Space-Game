@@ -44,7 +44,7 @@ function createSpaceshipPath() {
   spaceshipPath.lineTo(-10, 10);
   spaceshipPath.closePath();
 
-  pathDataMap.set("shuttle", { spaceshipPath, "aqua" });
+  pathDataMap.set("shuttle", { path: spaceshipPath, color: "aqua" });
 }
 
 createSpaceshipPath() // Eventually this needs to support scales if Phaser doesn't do it automagically
@@ -151,6 +151,7 @@ function drawShip(ctx, actor, panX, panY) {
     (actor.x - panX) * zoomFactor,
     (actor.y - panY) * zoomFactor
   );
+  ctx.rotate(actor.rotation);
   ctx.fillStyle = pathData.color;
   ctx.fill(new Path2D(pathData.path));
   ctx.restore();

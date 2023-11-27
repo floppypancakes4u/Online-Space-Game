@@ -63,6 +63,8 @@ const ASTEROID_COUNT = 100;
       Math.random() * 500 + 200,
       (Math.random() + 0.5) / 1000
     );
+
+    asteroid.setPath()
     SectorManager.addActor(asteroid);
   }
 
