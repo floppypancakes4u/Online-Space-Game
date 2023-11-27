@@ -7,6 +7,7 @@ import {
   Spaceship,
   Projectile,
   actorTypes,
+  actors,
 } from './actors.js';
 
 const canvas = document.getElementById('canvas');
@@ -55,7 +56,6 @@ export function drawActor(ctx, panX, panY, actor) {
       drawShip(ctx, actor, panX, panY);
     } else if (actor instanceof Projectile) {
       drawBullet(ctx, actor, panX, panY);
-      console.log("drawing bullet", actor)
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
@@ -197,32 +197,61 @@ function drawGrid() {
   visibleActors = 0;
   // Draw sector borders and information
   hoveredActor = null;
-  for (let sector of sectors) {
-    //sector.drawBorder();
-    drawBorder(sector, sector.isHovered);
-    sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
+  // for (let sector of sectors) {
+  //   //sector.drawBorder();
+  //   drawBorder(sector, sector.isHovered);
+  //   sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
 
-    //drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
-    
-    for (const [key, actor] of sector.actors) {
-      if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
-        drawActor(ctx, panX, panY, actor);
+  //   //drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
 
-        if (!hoveredActor) {
-          hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)
-            ? actor
-            : null;
-        }
+  //   for (const [key, actor] of sector.actors) {
+  //     if (actor instanceof Projectile) console.log("bullet boy");
+  //     if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
+  //       drawActor(ctx, panX, panY, actor);
 
-        visibleActors++;
+  //       if (!hoveredActor) {
+  //         hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)
+  //           ? actor
+  //           : null;
+  //       }
+
+  //       visibleActors++;
+  //     }
+
+  //     totalActors++;
+  //   }
+
+  //   if (hoveredActor) drawReticle({ actor: hoveredActor });
+  //   //hoveredActor = null;
+  // }
+
+  //for (let sector of sectors) {
+  //sector.drawBorder();
+  //drawBorder(sector, sector.isHovered);
+  //sector.drawSectorInfo(ctx, panX, panY, zoomFactor); // TODO: This needs to be moved to this file, but we will get there
+
+  //drawBullet(ctx, { x: 250, y: 250, rotation: 0 }, 0, 0);
+
+  for (const [ID, actor] of Object.entries(actors)) {
+    actor.update(deltaTime);
+    if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
+      drawActor(ctx, panX, panY, actor);
+
+      if (!hoveredActor) {
+        hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)
+          ? actor
+          : null;
       }
 
-      totalActors++;
+      visibleActors++;
     }
 
-    if (hoveredActor) drawReticle({ actor: hoveredActor });
-    //hoveredActor = null;
+    totalActors++;
   }
+
+  if (hoveredActor) drawReticle({ actor: hoveredActor });
+  //hoveredActor = null;
+  //}
 
   drawnSectors.clear();
   ctx.restore();
@@ -517,9 +546,9 @@ export function update() {
     drawGrid();
   }
 
-  for (let sector of sectors) {
-    sector.update(deltaTime);
-  }
+  // for (let sector of sectors) {
+  //   sector.update(deltaTime);
+  // }
 
   // Update Dev stuff
   actorDisplay.innerHTML = `Visible: ${visibleActors}</br>Total: ${totalActors}`;

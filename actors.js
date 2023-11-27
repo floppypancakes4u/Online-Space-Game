@@ -97,6 +97,12 @@ export class Actor {
     actors[this.ID] = this;
   }
 
+  destroy() {
+    // Probably need some sort of broadcast here that this actor is being destroyed.. we will see. lol
+
+    delete actors[this.ID];
+  }
+
   setMaxLifetime(lifetime) {
     this.maxLifetime = 0;
   }
@@ -324,6 +330,7 @@ export class ProjectileTurret extends WeaponHardpoint {
       offsetY = 5,
       existsInWorld = false,
     } = data;
+
     this.ID = `${this.constructor.name}-${Math.floor(
       Math.random() * 10000
     )}-${Date.now()}`;
@@ -340,8 +347,19 @@ export class ProjectileTurret extends WeaponHardpoint {
 
   setAttachedWorldPosition(parentActor) {
     if (!this.existsInWorld) return;
-    this.x = parentActor.x + this.offsetX;
-    this.y = parentActor.y + this.offsetY;
+
+    // Calculate the offset based on the parentActor's rotation
+    const offsetXRotated =
+      this.offsetX * Math.cos(parentActor.rotation) -
+      this.offsetY * Math.sin(parentActor.rotation);
+    const offsetYRotated =
+      this.offsetX * Math.sin(parentActor.rotation) +
+      this.offsetY * Math.cos(parentActor.rotation);
+
+    // Set the turret's position based on the rotated offset and parentActor's position
+    this.x = parentActor.x + offsetXRotated;
+    this.y = parentActor.y + offsetYRotated;
+    this.rotation = parentActor.rotation;
   }
 
   setActive(active) {
@@ -349,31 +367,50 @@ export class ProjectileTurret extends WeaponHardpoint {
       if (this.activeEventHandler === null) {
         this.activeEventHandler = setInterval(() => {
           this.fireWeapon();
-        }, this.recoil);
+        }, this.recoil * 1000);
 
-        console.log('Activated Turret');
+        //console.log('Activated Turret');
       }
     } else {
-      clearInterval(this.activeEventHandler);
-      this.activeEventHandler = null;
+      if (this.activeEventHandler) {
+        clearInterval(this.activeEventHandler);
+        this.activeEventHandler = null;
+        //console.log('De-Activated Turret');
+      }
     }
   }
 
   fireWeapon() {
-    new Projectile(this.x, this.y, 10, 'white', 10);
+    new Projectile(this.x, this.y, 10, 'white', {
+      ship: this,
+      rotation: this.rotation,
+      distance: this.range,
+    });
   }
 }
 
 export class Projectile extends Actor {
   constructor(x, y, size, color, data) {
     super(x, y, size, color);
-    const { bulletLength = 15, bulletWidth = 2, speed = 10 } = data;
+    const {
+      rotation = 0,
+      bulletLength = 15,
+      bulletWidth = 2,
+      ship = null,
+      speed = 10 + ship.getSpeed(),
+      distance = 1000,
+    } = data;
 
+    this.x = x;
+    this.y = y;
+    this.rotation = rotation;
     this.bulletLength = bulletLength;
     this.bulletWidth = bulletWidth;
     this.speed = speed;
+    this.killDistance = distance;
+    this.startPos = { x, y };
 
-    console.log('New Projectile', this );
+    //console.log('New Projectile', this);
   }
 
   HandleMovement() {
@@ -381,12 +418,15 @@ export class Projectile extends Actor {
     this.rotation %= Math.PI * 2;
 
     // Apply thrust in the direction of rotation
-    this.velocity.x += Math.cos(this.rotation) * this.speed;
-    this.velocity.y += Math.sin(this.rotation) * this.speed;
+    this.velocity.x = Math.cos(this.rotation) * this.speed;
+    this.velocity.y = Math.sin(this.rotation) * this.speed;
 
     // Update position based on the current velocity
-    this.x += this.velocity.x;
-    this.y += this.velocity.y;
+    this.x = this.x + this.velocity.x;
+    this.y = this.y + this.velocity.y;
+
+    const range = this.distanceTo(this.startPos);
+    if (range >= this.killDistance) this.destroy();
   }
 
   customUpdate(deltaTime) {
@@ -452,7 +492,21 @@ export class Spaceship extends Actor {
     this.radarContacts = [];
     this.equipment = {};
 
-    this.addEquipment(new ProjectileTurret(x, y, 1, 'white', { offsetX: 5, existsInWorld: true }));
+    this.addEquipment(
+      new ProjectileTurret(x, y, 1, 'white', {
+        offsetX: -19,
+        offsetY: 12,
+        existsInWorld: true,
+      })
+    );
+
+    this.addEquipment(
+      new ProjectileTurret(x, y, 1, 'white', {
+        offsetX: -19,
+        offsetY: -12,
+        existsInWorld: true,
+      })
+    );
 
     this.checkActorContacts(this.getRadarRange());
   }
