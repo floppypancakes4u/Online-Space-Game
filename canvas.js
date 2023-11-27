@@ -237,10 +237,12 @@ function drawGrid() {
     if (actor.isVisible(canvas.width, canvas.height, panX, panY)) {
       drawActor(ctx, panX, panY, actor);
 
-      if (!hoveredActor) {
-        hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)
-          ? actor
-          : null;
+      if (actor instanceof Projectile == false) {
+        if (!hoveredActor) {
+          hoveredActor = actor.isUnderCursor(lastMouseX, lastMouseY, panX, panY)
+            ? actor
+            : null;
+        }
       }
 
       visibleActors++;
