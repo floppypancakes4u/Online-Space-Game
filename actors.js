@@ -338,6 +338,8 @@ export class ProjectileTurret extends WeaponHardpoint {
         this.activeEventHandler = setInterval(() => {
           this.fireWeapon();
         }, this.recoil);
+
+        console.log("Activated Turret");
       }
     } else {
       clearInterval(this.activeEventHandler);
@@ -347,6 +349,7 @@ export class ProjectileTurret extends WeaponHardpoint {
 
   fireWeapon() {
     new Projectile(x, y, 10, 'white', 10);
+    console.log("fired weapon")
   }
 }
 
