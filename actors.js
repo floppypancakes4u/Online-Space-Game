@@ -103,7 +103,17 @@ export class Actor {
     this.selected = false;
     this.maxLifetime = maxLifetime;
     this.path = path;
+    this.hullHealth = 5;
     actors[this.ID] = this;
+  }
+
+  applyDamage(projectile) {
+    //console.log("applyDamage", projectile)
+    if (projectile.type == "kinetic") {
+      this.hullHealth -= projectile.kineticDamage;
+    }
+
+    if (this.hullHealth <= 0) this.destroy();
   }
 
   setPath(path) {
@@ -459,7 +469,9 @@ export class Projectile extends Actor {
     ship = null,
     speed = 10,
     distance = 1000,
-    radarContacts = []
+    type = "kinetic",
+    kineticDamage = 1,
+    radarContacts = [],
   } = {}) {
     super({ x, y, color }); // size is not included as per your requirement
     this.rotation = rotation;
@@ -468,6 +480,8 @@ export class Projectile extends Actor {
     this.speed = speed + (ship ? ship.getSpeed() : 0);
     this.killDistance = distance;
     this.startPos = { x, y };
+    this.type = "kinetic";
+    this.kineticDamage = kineticDamage;
     this.radarContacts = radarContacts;
     this.checkIteration = 0;
 
@@ -497,7 +511,10 @@ export class Projectile extends Actor {
     //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
     this.radarContacts.forEach((contact) => {
       const distanceToContact = this.distanceTo(contact); // Assuming you have this method
-      if (distanceToContact < 35) console.log("distanceToContact", distanceToContact);
+      if (distanceToContact < 35) {
+        contact.applyDamage(this);
+        this.destroy();
+      }
     });
   }
 
