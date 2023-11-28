@@ -122,8 +122,39 @@ export class Actor {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  collidesWith(otherActor) {
+  collidesWith(actor) {
+    // Get the bounding boxes of the paths
+    const path1BoundingBox = this.path.getBoundingClientRect();
+    const path2BoundingBox = actor.path.getBoundingClientRect();
 
+    // Bounding box check
+    if (
+      path1BoundingBox.right < path2BoundingBox.left ||
+      path1BoundingBox.left > path2BoundingBox.right ||
+      path1BoundingBox.bottom < path2BoundingBox.top ||
+      path1BoundingBox.top > path2BoundingBox.bottom
+    ) {
+      // Bounding boxes do not intersect, no collision
+      return false;
+    }
+
+    // Point-in-Path test
+    const ctx = document.createElement('canvas').getContext('2d');
+    // Add path1 to the context
+    ctx.addPath(this.path);
+
+    // Iterate through points in path2 and test if they are inside path1
+    for (let x = path2BoundingBox.left; x <= path2BoundingBox.right; x++) {
+      for (let y = path2BoundingBox.top; y <= path2BoundingBox.bottom; y++) {
+        if (ctx.isPointInPath(x, y)) {
+          // Found a point inside path1, there is a collision
+          return true;
+        }
+      }
+    }
+
+    // No collision found
+    return false;
   }
 
   setAutopilotTarget(target, x = null, y = null) {
@@ -338,6 +369,7 @@ export class ProjectileTurret extends WeaponHardpoint {
       offsetX = 5,
       offsetY = 5,
       existsInWorld = false,
+      owningActor = null,
     } = data;
 
     this.ID = `${this.constructor.name}-${Math.floor(
@@ -350,6 +382,7 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     this.existsInWorld = existsInWorld;
+    this.owningActor = owningActor;
 
     console.log(this);
   }
@@ -390,10 +423,12 @@ export class ProjectileTurret extends WeaponHardpoint {
   }
 
   fireWeapon() {
+    console.log(this.owningActor);
     new Projectile(this.x, this.y, 10, 'white', {
       ship: this,
       rotation: this.rotation,
       distance: this.range,
+      radarContacts: this.owningActor.radarContacts,
     });
   }
 }
@@ -408,6 +443,7 @@ export class Projectile extends Actor {
       ship = null,
       speed = 10 + ship.getSpeed(),
       distance = 1000,
+      radarContacts = [],
     } = data;
 
     this.x = x;
@@ -418,8 +454,45 @@ export class Projectile extends Actor {
     this.speed = speed;
     this.killDistance = distance;
     this.startPos = { x, y };
+    this.radarContacts = radarContacts;
 
-    //console.log('New Projectile', this);
+    //Private
+    this.checkIteration = 0;
+
+
+    this.removeOutOfRangeActors();
+
+  }
+
+  removeOutOfRangeActors() {
+    const remainingDistance = this.getRemainingDistance();
+    this.radarContacts = this.radarContacts.filter((contact) => {
+      const distanceToContact = this.distanceTo(contact);
+      return distanceToContact <= remainingDistance;
+    });
+  }
+
+  checkRadarContactsDistance() {
+    // Increment the call count
+    this.checkIteration++;
+
+    // Check every 10 times this method is called
+    if (this.checkIteration % 10 !== 0) {
+      return; // Skip the check if it's not the 10th call
+    }
+
+    this.removeOutOfRangeActors();
+
+    // Perform the distance check for each radar contact
+    //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
+    this.radarContacts.forEach((contact) => {
+      const distanceToContact = this.distanceTo(contact); // Assuming you have this method
+      if (distanceToContact < 10) console.log("distanceToContact", distanceToContact);
+    });
+  }
+
+  getRemainingDistance() {
+    return this.killDistance - this.distanceTo(this.startPos);
   }
 
   HandleMovement() {
@@ -440,6 +513,7 @@ export class Projectile extends Actor {
 
   customUpdate(deltaTime) {
     this.HandleMovement();
+    this.checkRadarContactsDistance();
   }
 }
 
@@ -506,6 +580,7 @@ export class Spaceship extends Actor {
         offsetX: -19,
         offsetY: 12,
         existsInWorld: true,
+        owningActor: this,
       })
     );
 
@@ -514,6 +589,7 @@ export class Spaceship extends Actor {
         offsetX: -19,
         offsetY: -12,
         existsInWorld: true,
+        owningActor: this,
       })
     );
 
