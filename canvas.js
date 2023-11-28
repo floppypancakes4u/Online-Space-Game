@@ -67,7 +67,7 @@ export function drawActor(ctx, panX, panY, actor) {
     } else if (actor instanceof Spaceship) {
       drawShip(ctx, actor, panX, panY);
     } else if (actor instanceof Projectile) {
-      drawBullet(ctx, actor, panX, panY);
+      drawProjectile(ctx, actor, panX, panY);
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
@@ -94,7 +94,7 @@ export function setCamera(x, y) {
   panY = y - centerY;
 }
 
-function drawBullet(
+function drawProjectile(
   ctx,
   actor,
   panX,
@@ -110,6 +110,7 @@ function drawBullet(
   // Create the bullet shape as a rectangle
   BulletPath.rect(0, -bulletWidth / 2, bulletLength, bulletWidth);
 
+  ctx.fillStyle = actor.color
   ctx.fill(BulletPath);
   ctx.restore();
 }

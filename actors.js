@@ -74,27 +74,35 @@ function getRandomElement(arr) {
 
 // Classes
 export class Actor {
-  constructor(x, y, size, color) {
-    this.ID = `${this.constructor.name}-${Math.floor(
-      Math.random() * 10000
-    )}-${Date.now()}`;
+  constructor({ 
+    x = 0, 
+    y = 0, 
+    size = 1, 
+    color = 'black', 
+    rotation = 0, 
+    type = 'Sun', 
+    velocity = { x: 0, y: 0 }, 
+    maxLifetime = 0, 
+    path = null
+  } = {}) {
+    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
     this.x = x;
     this.y = y;
     this.size = size;
     this.color = color;
-    this.rotation = 0;
-    this.type = 'Sun';
+    this.rotation = rotation;
+    this.type = type;
     this.currentSector = null;
     this.children = [];
-    this.name = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}`;
-    this.velocity = { x: 0, y: 0 };
+    this.name = this.ID
+    this.velocity = velocity;
     this.isThrusting = false;
     this.spacePressed = false;
     this.autopilot = false;
     this.targetPosition = { x: 0, y: 0 };
     this.selected = false;
-    this.maxLifetime = 0;
-    this.path = null;
+    this.maxLifetime = maxLifetime;
+    this.path = path;
     actors[this.ID] = this;
   }
 
@@ -336,9 +344,12 @@ export class Actor {
 }
 
 export class Equipment extends Actor {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
-    this.activeEventHandler = null;
+  constructor({ 
+    x, y, size, color, 
+    activeEventHandler = null 
+  } = {}) {
+    super({ x, y, size, color });
+    this.activeEventHandler = activeEventHandler;
   }
 
   activate() {}
@@ -347,35 +358,37 @@ export class Equipment extends Actor {
 }
 
 export class Hardpoint extends Equipment {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
+  constructor(options = {}) {
+    super(options);
   }
 }
 
 export class WeaponHardpoint extends Hardpoint {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
+  constructor(options = {}) {
+    super(options);
   }
 }
 
 export class ProjectileTurret extends WeaponHardpoint {
-  constructor(x, y, size, color, data) {
-    super(x, y, size, color);
+  constructor(options = {}) {
+    super(options);
     const {
+      x = 0,
+      y = 0,
       amount = 1,
       recoil = 0.05,
-      range = 1000, // How far the projectile will go before being self-destroyed
-      accuracy = 0.05, // Percentage of accuracy at max range
+      range = 1000,
+      accuracy = 0.05,
       offsetX = 5,
       offsetY = 5,
       existsInWorld = false,
-      owningActor = null,
-    } = data;
+      owningActor = null
+    } = options;
 
-    this.ID = `${this.constructor.name}-${Math.floor(
-      Math.random() * 10000
-    )}-${Date.now()}`;
-    this.recoil = recoil; // How long between shots/bursts
+    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
+    this.x = x;
+    this.y = y;
+    this.recoil = recoil;
     this.amount = amount;
     this.range = range;
     this.accuracy = accuracy;
@@ -384,7 +397,7 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.existsInWorld = existsInWorld;
     this.owningActor = owningActor;
 
-    console.log(this);
+    console.log(options)
   }
 
   setAttachedWorldPosition(parentActor) {
@@ -423,9 +436,11 @@ export class ProjectileTurret extends WeaponHardpoint {
   }
 
   fireWeapon() {
-    console.log(this.owningActor);
-    new Projectile(this.x, this.y, 10, 'white', {
+    new Projectile({
       ship: this,
+      x: this.x,
+      y: this.y,
+      color: "red",
       rotation: this.rotation,
       distance: this.range,
       radarContacts: this.owningActor.radarContacts,
@@ -434,34 +449,29 @@ export class ProjectileTurret extends WeaponHardpoint {
 }
 
 export class Projectile extends Actor {
-  constructor(x, y, size, color, data) {
-    super(x, y, size, color);
-    const {
-      rotation = 0,
-      bulletLength = 15,
-      bulletWidth = 2,
-      ship = null,
-      speed = 10 + ship.getSpeed(),
-      distance = 1000,
-      radarContacts = [],
-    } = data;
-
-    this.x = x;
-    this.y = y;
+  constructor({
+    x = 0,
+    y = 0,
+    color = 'grey',
+    rotation = 0,
+    bulletLength = 15,
+    bulletWidth = 2,
+    ship = null,
+    speed = 10,
+    distance = 1000,
+    radarContacts = []
+  } = {}) {
+    super({ x, y, color }); // size is not included as per your requirement
     this.rotation = rotation;
     this.bulletLength = bulletLength;
     this.bulletWidth = bulletWidth;
-    this.speed = speed;
+    this.speed = speed + (ship ? ship.getSpeed() : 0);
     this.killDistance = distance;
     this.startPos = { x, y };
     this.radarContacts = radarContacts;
-
-    //Private
     this.checkIteration = 0;
 
-
     this.removeOutOfRangeActors();
-
   }
 
   removeOutOfRangeActors() {
@@ -487,7 +497,7 @@ export class Projectile extends Actor {
     //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
     this.radarContacts.forEach((contact) => {
       const distanceToContact = this.distanceTo(contact); // Assuming you have this method
-      if (distanceToContact < 10) console.log("distanceToContact", distanceToContact);
+      if (distanceToContact < 35) console.log("distanceToContact", distanceToContact);
     });
   }
 
@@ -518,26 +528,36 @@ export class Projectile extends Actor {
 }
 
 export class SolarBody extends Actor {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
+  constructor(options = {}) {
+    super(options);
   }
 }
 
 export class Sun extends SolarBody {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
+  constructor(options = {}) {
+    super(options);
   }
 }
 
 export class Planet extends Actor {
-  constructor(parent, size, color, orbitRadius, orbitSpeed) {
-    super(parent.x, parent.y, size, color);
-
+  constructor({ 
+    parent, 
+    size, 
+    color, 
+    orbitRadius, 
+    orbitSpeed, 
+    angle = Math.random() * 2 * Math.PI // Start at a random angle
+  } = {}) {
+    if (parent) {
+      super({ x: parent.x, y: parent.y, size, color });
+    } else {
+      super({ size, color });
+    }   
     this.parent = parent;
     this.orbitRadius = orbitRadius;
     this.orbitSpeed = orbitSpeed;
-    this.type = this.size > 10 ? 'Planet' : 'Moon';
-    this.angle = Math.random() * 2 * Math.PI; // Start at a random angle
+    this.type = size > 10 ? 'Planet' : 'Moon';
+    this.angle = angle;
   }
 
   customUpdate(deltaTime) {
@@ -554,29 +574,45 @@ export class Planet extends Actor {
 }
 
 export class Asteroid extends Planet {
-  constructor(parent, size, orbitRadius, orbitSpeed) {
-    super(parent, size, 'gray', orbitRadius, orbitSpeed);
-    this.type = 'Asteroid';
-    const randomShapeId = getRandomElement(asteroidShapes);
-    this.shapeId = randomShapeId;
-    this.shape = asteroidShapes[randomShapeId];
+  constructor({ 
+    parent, 
+    size, 
+    orbitRadius, 
+    orbitSpeed, 
+    color = 'gray', 
+    type = 'Asteroid', 
+    shapeId = getRandomElement(asteroidShapes), 
+    shape = asteroidShapes[shapeId]
+  } = {}) {
+    super({ parent, size, color, orbitRadius, orbitSpeed });
+    this.type = type;
+    this.shapeId = shapeId;
+    this.shape = shape;
   }
 }
 
 export class Spaceship extends Actor {
-  constructor(x, y, size, color) {
-    super(x, y, size, color);
+  constructor({ 
+    x, y, size, color, 
+    MaxSpeed = 55, 
+    thrust = 0.1, 
+    drag = 0.99, 
+    acceleration = { x: 0, y: 0 }, 
+    targetBody = null 
+  } = {}) {
+    super({ x, y, size, color });
     this.type = 'Spaceship';
-    this.MaxSpeed = 55;
-    this.thrust = 0.1;
-    this.drag = 0.99;
-    this.acceleration = { x: 0, y: 0 };
-    this.targetBody = null;
+    this.MaxSpeed = MaxSpeed;
+    this.thrust = thrust;
+    this.drag = drag;
+    this.acceleration = acceleration;
+    this.targetBody = targetBody;
     this.radarContacts = [];
     this.equipment = {};
 
+    console.log("This ship: ", this)
     this.addEquipment(
-      new ProjectileTurret(x, y, 1, 'white', {
+      new ProjectileTurret({
         offsetX: -19,
         offsetY: 12,
         existsInWorld: true,
@@ -585,7 +621,7 @@ export class Spaceship extends Actor {
     );
 
     this.addEquipment(
-      new ProjectileTurret(x, y, 1, 'white', {
+      new ProjectileTurret({
         offsetX: -19,
         offsetY: -12,
         existsInWorld: true,
