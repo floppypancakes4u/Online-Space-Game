@@ -386,7 +386,7 @@ export class ProjectileTurret extends WeaponHardpoint {
       y = 0,
       amount = 1,
       recoil = 0.05,
-      range = 250,
+      range = 788,
       accuracy = 25,
       offsetX = 5,
       offsetY = 5,

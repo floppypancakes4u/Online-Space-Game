@@ -298,7 +298,7 @@ function drawAngledArc({
   x = 350,
   y = 100,
   initialDistance = 250,
-  maxDistance = 1000,
+  distance = 1000,
   rotation = 30,
   angle = 25,
   interval = 250,
@@ -309,44 +309,33 @@ function drawAngledArc({
   // Save the current context state
   ctx.save();
 
-  for (
-    let distance = initialDistance;
-    distance <= maxDistance;
-    distance += interval
-  ) {
+  for (let incDistance = initialDistance; incDistance <= distance; incDistance += interval) {
     // Calculate the start and end angles relative to the rotation for each arc
     let startAngleRadians = rotation - halfAngleRadians;
     let endAngleRadians = rotation + halfAngleRadians;
 
-    // Begin path for each arc
-    ctx.beginPath();
-
     // Draw the arc
-    ctx.arc(x, y, distance, startAngleRadians, endAngleRadians);
+    ctx.beginPath();
+    ctx.arc(x, y, incDistance, startAngleRadians, endAngleRadians);
+    ctx.stroke();
 
-    // Draw the lines to complete the sector (if needed)
+    // Draw lines to the center if needed
     if (angle < 360) {
-      ctx.moveTo(x, y);
-      ctx.lineTo(
-        x + distance * Math.cos(startAngleRadians),
-        y + distance * Math.sin(startAngleRadians)
-      );
-      ctx.lineTo(
-        x + distance * Math.cos(endAngleRadians),
-        y + distance * Math.sin(endAngleRadians)
-      );
-      ctx.lineTo(x, y);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + incDistance * Math.cos(startAngleRadians), y + incDistance * Math.sin(startAngleRadians));
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + incDistance * Math.cos(endAngleRadians), y + incDistance * Math.sin(endAngleRadians));
+        ctx.stroke();
     }
 
     // Add text for the distance
     let textPositionAngle = rotation + halfAngleRadians; // Position at the end of the arc
-    let textX = x + (distance + 10) * Math.cos(textPositionAngle); // Adjust text position
-    let textY = y + (distance + 10) * Math.sin(textPositionAngle); // Adjust text position
-    ctx.fillText(`${distance} units`, textX, textY);
+    let textX = x + (incDistance + 10) * Math.cos(textPositionAngle); // Adjust text position
+    let textY = y + (incDistance + 10) * Math.sin(textPositionAngle); // Adjust text position
+    ctx.fillText(`${incDistance} units`, textX, textY);
+}
 
-    // Stroke the path
-    ctx.stroke(); // or ctx.fill();
-  }
 
   // Restore the context to its original state
   ctx.restore();
