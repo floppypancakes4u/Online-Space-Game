@@ -74,7 +74,7 @@ export function drawActor(ctx, panX, panY, actor) {
         ctx,
         x: actor.x - panX,
         y: actor.y - panY,
-        distance: actor.range,
+        distance: Math.min(actor.range, actor.owningActor.getRadarRange()),
         rotation: actor.rotation,
         angle: actor.accuracy,
       });
@@ -328,13 +328,14 @@ function drawAngledArc({
         ctx.stroke();
     }
 
-    // Add text for the distance
+    if (incDistance > 0) {
+      // Add text for the distance
     let textPositionAngle = rotation + halfAngleRadians; // Position at the end of the arc
     let textX = x + (incDistance + 10) * Math.cos(textPositionAngle); // Adjust text position
     let textY = y + (incDistance + 10) * Math.sin(textPositionAngle); // Adjust text position
     ctx.fillText(`${incDistance} units`, textX, textY);
+    }    
 }
-
 
   // Restore the context to its original state
   ctx.restore();
@@ -504,6 +505,14 @@ export function drawReticle(options) {
         `Orbit Speed: ${actor.orbitSpeed.toFixed(3)}`,
         textX,
         textY + 140
+      ); // .toFixed(3) to round to 3 decimal places
+    }
+
+    if (actor.hullHealth > 0) {
+      ctx.fillText(
+        `Hull: ${actor.hullHealth.toFixed(3)}`,
+        textX,
+        textY + 160
       ); // .toFixed(3) to round to 3 decimal places
     }
   }

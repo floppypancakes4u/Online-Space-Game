@@ -89,7 +89,8 @@ export class Actor {
       Math.random() * 10000
     )}-${Date.now()}`;
     this.x = x;
-    this.y = y;
+    this.y = y;    
+    this.startPos = { x, y };
     this.size = size;
     this.color = color;
     this.rotation = rotation;
@@ -106,7 +107,20 @@ export class Actor {
     this.maxLifetime = maxLifetime;
     this.path = path;
     this.hullHealth = 5;
+    this.markedForDestruction = false;
     actors[this.ID] = this;
+
+    this.init();
+  }
+
+  init() {
+    const _ = this;
+    document.addEventListener('World:ActorDestroyed', function (event) {
+      const { actor } =
+        event.detail;
+      _.otherActorDestroyed(actor);
+      //console.log("Actor Deleted: ", actor);
+    });
   }
 
   applyDamage(projectile) {
@@ -123,9 +137,30 @@ export class Actor {
   }
 
   destroy() {
-    // Probably need some sort of broadcast here that this actor is being destroyed.. we will see. lol
+    if (this.markedForDestruction) return;
 
+    const destroyedActorEvent = new CustomEvent('World:ActorDestroyed', {
+      detail: {
+        actor: this,
+      },
+    });
+    document.dispatchEvent(destroyedActorEvent);
+
+    //console.log("destroying self: ", this)
     delete actors[this.ID];
+
+    // *** TESTING *** //
+
+    this.isActive = false;
+    //console.log("Destroyed: ", this.constructor.name, this.distanceTo(this.startPos))
+
+    // *** TESTING *** //
+    
+    this.markedForDestruction = true;
+  }
+
+  otherActorDestroyed(actor) {
+
   }
 
   setMaxLifetime(lifetime) {
@@ -453,7 +488,7 @@ export class ProjectileTurret extends WeaponHardpoint {
       y: this.y,
       color: 'red',
       rotation: addRandomSpread(this.rotation, this.accuracy),
-      distance: this.range,
+      range: Math.min(this.range, this.owningActor.getRadarRange()),
       radarContacts: this.owningActor.radarContacts,
     });
   }
@@ -469,7 +504,7 @@ export class Projectile extends Actor {
     bulletWidth = 2,
     ship = null,
     speed = 10,
-    distance = 1000,
+    range = 1000,
     type = 'kinetic',
     kineticDamage = 1,
     radarContacts = [],
@@ -479,12 +514,12 @@ export class Projectile extends Actor {
     this.bulletLength = bulletLength;
     this.bulletWidth = bulletWidth;
     this.speed = speed + (ship ? ship.getSpeed() : 0);
-    this.killDistance = distance;
-    this.startPos = { x, y };
+    this.killDistance = range;
     this.type = 'kinetic';
     this.kineticDamage = kineticDamage;
     this.radarContacts = radarContacts;
     this.checkIteration = 0;
+    this.active = true;
 
     this.removeOutOfRangeActors();
   }
@@ -502,7 +537,7 @@ export class Projectile extends Actor {
     this.checkIteration++;
 
     // Check every 10 times this method is called
-    if (this.checkIteration % 10 !== 0) {
+    if (this.checkIteration % 4 !== 0) {
       return; // Skip the check if it's not the 10th call
     }
 
@@ -512,7 +547,8 @@ export class Projectile extends Actor {
     //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
     this.radarContacts.forEach((contact) => {
       const distanceToContact = this.distanceTo(contact); // Assuming you have this method
-      if (distanceToContact < 35 && contact instanceof Projectile == false) {
+      if (distanceToContact < 35 && contact instanceof Projectile == false && contact instanceof Hardpoint == false) {
+        console.log("Contacted: ", contact.constructor.name, distanceToContact)
         contact.applyDamage(this);
         this.destroy();
       }
@@ -536,10 +572,12 @@ export class Projectile extends Actor {
     this.y = this.y + this.velocity.y;
 
     const range = this.distanceTo(this.startPos);
+    //console.log(range, this.killDistance)
     if (range >= this.killDistance) this.destroy();
   }
 
   customUpdate(deltaTime) {
+    if (this.isActive == false) return;
     this.HandleMovement();
     this.checkRadarContactsDistance();
   }
@@ -630,6 +668,7 @@ export class Spaceship extends Actor {
     this.targetBody = targetBody;
     this.radarContacts = [];
     this.equipment = {};
+    this.effectiveRadarRange = 700;
 
     console.log('This ship: ', this);
     this.addEquipment(
@@ -651,6 +690,10 @@ export class Spaceship extends Actor {
     );
 
     this.checkActorContacts(this.getRadarRange());
+  }  
+
+  otherActorDestroyed(actor) {
+    this.removeContact(actor);
   }
 
   addEquipment(newEquipment) {
@@ -658,7 +701,7 @@ export class Spaceship extends Actor {
   }
 
   getRadarRange() {
-    return 250;
+    return this.effectiveRadarRange;
   }
 
   checkActorContacts(radarRange = 50) {
@@ -677,14 +720,15 @@ export class Spaceship extends Actor {
           }
         } else {
           // Remove from radarContacts if out of range
-          const index = this.radarContacts.indexOf(actor);
-          if (index > -1) {
-            this.radarContacts.splice(index, 1);
-            const event = new CustomEvent('RadarContactUpdate', {
-              detail: { type: 'radarContact', action: 'remove', actor },
-            });
-            document.dispatchEvent(event);
-          }
+          // const index = this.radarContacts.indexOf(actor);
+          // if (index > -1) {
+          //   this.radarContacts.splice(index, 1);
+          //   const event = new CustomEvent('RadarContactUpdate', {
+          //     detail: { type: 'radarContact', action: 'remove', actor },
+          //   });
+          //   document.dispatchEvent(event);
+          // }
+          this.removeContact(actor);
         }
       }
     }
@@ -692,6 +736,17 @@ export class Spaceship extends Actor {
     setTimeout(() => {
       this.checkActorContacts(this.getRadarRange());
     }, 250);
+  }
+
+  removeContact(actor) {
+    const index = this.radarContacts.indexOf(actor);
+    if (index > -1) {
+      this.radarContacts.splice(index, 1);
+      const event = new CustomEvent('RadarContactUpdate', {
+        detail: { type: 'radarContact', action: 'remove', actor },
+      });
+      document.dispatchEvent(event);
+    }
   }
 
   findRandomTarget() {
