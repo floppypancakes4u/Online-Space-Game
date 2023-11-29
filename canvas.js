@@ -6,6 +6,7 @@ import {
   Asteroid,
   Spaceship,
   Projectile,
+  Hardpoint,
   actorTypes,
   actors,
 } from './actors.js';
@@ -44,10 +45,10 @@ function createSpaceshipPath() {
   spaceshipPath.lineTo(-10, 10);
   spaceshipPath.closePath();
 
-  pathDataMap.set("shuttle", { path: spaceshipPath, color: "aqua" });
+  pathDataMap.set('shuttle', { path: spaceshipPath, color: 'aqua' });
 }
 
-createSpaceshipPath() // Eventually this needs to support scales if Phaser doesn't do it automagically
+createSpaceshipPath(); // Eventually this needs to support scales if Phaser doesn't do it automagically
 
 export function savePathData(instance, id, scale, pathData, color) {
   if (scale != 0.7) saveScaledPathData(instance, id, scale, pathData, color);
@@ -69,7 +70,14 @@ export function drawActor(ctx, panX, panY, actor) {
     } else if (actor instanceof Projectile) {
       drawProjectile(ctx, actor, panX, panY);
     } else if (actor instanceof Hardpoint) {
-      drawAngledArc({ctx, x: actor.x, y: actor.y, distance: actor.range, direction: actor.rotation, angle: actor.accuracy})
+      drawAngledArc({
+        ctx,
+        x: actor.x - panX,
+        y: actor.y - panY,
+        distance: actor.range,
+        rotation: actor.rotation,
+        angle: actor.accuracy,
+      });
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
@@ -112,7 +120,7 @@ function drawProjectile(
   // Create the bullet shape as a rectangle
   BulletPath.rect(0, -bulletWidth / 2, bulletLength, bulletWidth);
 
-  ctx.fillStyle = actor.color
+  ctx.fillStyle = actor.color;
   ctx.fill(BulletPath);
   ctx.restore();
 }
@@ -139,8 +147,8 @@ function drawShip(ctx, actor, panX, panY) {
   // ctx.lineWidth = 2;
   // ctx.stroke();
 
-  // ctx.restore(); 
-  const key = "shuttle";
+  // ctx.restore();
+  const key = 'shuttle';
   const pathData = pathDataMap.get(key);
 
   if (!pathData) {
@@ -150,10 +158,7 @@ function drawShip(ctx, actor, panX, panY) {
   }
 
   ctx.save();
-  ctx.translate(
-    (actor.x - panX) * zoomFactor,
-    (actor.y - panY) * zoomFactor
-  );
+  ctx.translate((actor.x - panX) * zoomFactor, (actor.y - panY) * zoomFactor);
   ctx.rotate(actor.rotation);
   ctx.fillStyle = pathData.color;
   ctx.fill(new Path2D(pathData.path));
@@ -285,39 +290,67 @@ function drawGrid() {
 
   drawnSectors.clear();
 
-  drawAngledArc({ctx, x: 350, y: 100, distance: 250, direction: 30, angle: 25}); // Draws a 45 degree arc
   ctx.restore();
 }
 
-function drawAngledArc({ctx, 
-  x = 350, 
-  y = 100, 
-  distance = 250, 
-  direction = 30,
-  angle = 25
+function drawAngledArc({
+  ctx,
+  x = 350,
+  y = 100,
+  initialDistance = 250,
+  maxDistance = 1000,
+  rotation = 30,
+  angle = 25,
+  interval = 250,
 } = {}) {
- 
-  const startAngle = direction - (angle / 2)
-  // Convert angles from degrees to radians
-  let startAngleRadians = startAngle * Math.PI / 180;
-  let endAngleRadians = (startAngle + angle) * Math.PI / 180;
+  // Convert angle from degrees to radians
+  let halfAngleRadians = ((angle / 2) * Math.PI) / 180;
 
-  // Begin path
-  ctx.beginPath();
+  // Save the current context state
+  ctx.save();
 
-  // Draw the arc
-  ctx.arc(x, y, distance, startAngleRadians, endAngleRadians);
+  for (
+    let distance = initialDistance;
+    distance <= maxDistance;
+    distance += interval
+  ) {
+    // Calculate the start and end angles relative to the rotation for each arc
+    let startAngleRadians = rotation - halfAngleRadians;
+    let endAngleRadians = rotation + halfAngleRadians;
 
-  // Draw the lines to complete the sector (if needed)
-  if (angle < 360) {
+    // Begin path for each arc
+    ctx.beginPath();
+
+    // Draw the arc
+    ctx.arc(x, y, distance, startAngleRadians, endAngleRadians);
+
+    // Draw the lines to complete the sector (if needed)
+    if (angle < 360) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(
+        x + distance * Math.cos(startAngleRadians),
+        y + distance * Math.sin(startAngleRadians)
+      );
+      ctx.lineTo(
+        x + distance * Math.cos(endAngleRadians),
+        y + distance * Math.sin(endAngleRadians)
+      );
       ctx.lineTo(x, y);
-      ctx.lineTo(x + distance * Math.cos(startAngleRadians), y + distance * Math.sin(startAngleRadians));
+    }
+
+    // Add text for the distance
+    let textPositionAngle = rotation + halfAngleRadians; // Position at the end of the arc
+    let textX = x + (distance + 10) * Math.cos(textPositionAngle); // Adjust text position
+    let textY = y + (distance + 10) * Math.sin(textPositionAngle); // Adjust text position
+    ctx.fillText(`${distance} units`, textX, textY);
+
+    // Stroke the path
+    ctx.stroke(); // or ctx.fill();
   }
 
-  // Stroke or fill the path as required
-  ctx.stroke(); // or ctx.fill();
+  // Restore the context to its original state
+  ctx.restore();
 }
-
 
 export function initEventListeners() {
   window.addEventListener('resize', setCanvasSize);

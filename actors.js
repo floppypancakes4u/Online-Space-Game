@@ -74,18 +74,20 @@ function getRandomElement(arr) {
 
 // Classes
 export class Actor {
-  constructor({ 
-    x = 0, 
-    y = 0, 
-    size = 1, 
-    color = 'black', 
-    rotation = 0, 
-    type = 'Sun', 
-    velocity = { x: 0, y: 0 }, 
-    maxLifetime = 0, 
-    path = null
+  constructor({
+    x = 0,
+    y = 0,
+    size = 1,
+    color = 'black',
+    rotation = 0,
+    type = 'Sun',
+    velocity = { x: 0, y: 0 },
+    maxLifetime = 0,
+    path = null,
   } = {}) {
-    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
     this.x = x;
     this.y = y;
     this.size = size;
@@ -94,7 +96,7 @@ export class Actor {
     this.type = type;
     this.currentSector = null;
     this.children = [];
-    this.name = this.ID
+    this.name = this.ID;
     this.velocity = velocity;
     this.isThrusting = false;
     this.spacePressed = false;
@@ -109,7 +111,7 @@ export class Actor {
 
   applyDamage(projectile) {
     //console.log("applyDamage", projectile)
-    if (projectile.type == "kinetic") {
+    if (projectile.type == 'kinetic') {
       this.hullHealth -= projectile.kineticDamage;
     }
 
@@ -354,10 +356,7 @@ export class Actor {
 }
 
 export class Equipment extends Actor {
-  constructor({ 
-    x, y, size, color, 
-    activeEventHandler = null 
-  } = {}) {
+  constructor({ x, y, size, color, activeEventHandler = null } = {}) {
     super({ x, y, size, color });
     this.activeEventHandler = activeEventHandler;
   }
@@ -387,15 +386,17 @@ export class ProjectileTurret extends WeaponHardpoint {
       y = 0,
       amount = 1,
       recoil = 0.05,
-      range = 1000,
-      accuracy = 0.05,
+      range = 250,
+      accuracy = 25,
       offsetX = 5,
       offsetY = 5,
       existsInWorld = false,
-      owningActor = null
+      owningActor = null,
     } = options;
 
-    this.ID = `${this.constructor.name}-${Math.floor(Math.random() * 10000)}-${Date.now()}`;
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
     this.x = x;
     this.y = y;
     this.recoil = recoil;
@@ -407,7 +408,7 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.existsInWorld = existsInWorld;
     this.owningActor = owningActor;
 
-    console.log(options)
+    console.log(options);
   }
 
   setAttachedWorldPosition(parentActor) {
@@ -450,8 +451,8 @@ export class ProjectileTurret extends WeaponHardpoint {
       ship: this,
       x: this.x,
       y: this.y,
-      color: "red",
-      rotation: this.rotation,
+      color: 'red',
+      rotation: addRandomSpread(this.rotation, this.accuracy),
       distance: this.range,
       radarContacts: this.owningActor.radarContacts,
     });
@@ -469,7 +470,7 @@ export class Projectile extends Actor {
     ship = null,
     speed = 10,
     distance = 1000,
-    type = "kinetic",
+    type = 'kinetic',
     kineticDamage = 1,
     radarContacts = [],
   } = {}) {
@@ -480,7 +481,7 @@ export class Projectile extends Actor {
     this.speed = speed + (ship ? ship.getSpeed() : 0);
     this.killDistance = distance;
     this.startPos = { x, y };
-    this.type = "kinetic";
+    this.type = 'kinetic';
     this.kineticDamage = kineticDamage;
     this.radarContacts = radarContacts;
     this.checkIteration = 0;
@@ -511,7 +512,7 @@ export class Projectile extends Actor {
     //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
     this.radarContacts.forEach((contact) => {
       const distanceToContact = this.distanceTo(contact); // Assuming you have this method
-      if (distanceToContact < 35) {
+      if (distanceToContact < 35 && contact instanceof Projectile == false) {
         contact.applyDamage(this);
         this.destroy();
       }
@@ -557,19 +558,19 @@ export class Sun extends SolarBody {
 }
 
 export class Planet extends Actor {
-  constructor({ 
-    parent, 
-    size, 
-    color, 
-    orbitRadius, 
-    orbitSpeed, 
-    angle = Math.random() * 2 * Math.PI // Start at a random angle
+  constructor({
+    parent,
+    size,
+    color,
+    orbitRadius,
+    orbitSpeed,
+    angle = Math.random() * 2 * Math.PI, // Start at a random angle
   } = {}) {
     if (parent) {
       super({ x: parent.x, y: parent.y, size, color });
     } else {
       super({ size, color });
-    }   
+    }
     this.parent = parent;
     this.orbitRadius = orbitRadius;
     this.orbitSpeed = orbitSpeed;
@@ -591,15 +592,15 @@ export class Planet extends Actor {
 }
 
 export class Asteroid extends Planet {
-  constructor({ 
-    parent, 
-    size, 
-    orbitRadius, 
-    orbitSpeed, 
-    color = 'gray', 
-    type = 'Asteroid', 
-    shapeId = getRandomElement(asteroidShapes), 
-    shape = asteroidShapes[shapeId]
+  constructor({
+    parent,
+    size,
+    orbitRadius,
+    orbitSpeed,
+    color = 'gray',
+    type = 'Asteroid',
+    shapeId = getRandomElement(asteroidShapes),
+    shape = asteroidShapes[shapeId],
   } = {}) {
     super({ parent, size, color, orbitRadius, orbitSpeed });
     this.type = type;
@@ -609,13 +610,16 @@ export class Asteroid extends Planet {
 }
 
 export class Spaceship extends Actor {
-  constructor({ 
-    x, y, size, color, 
-    MaxSpeed = 55, 
-    thrust = 0.1, 
-    drag = 0.99, 
-    acceleration = { x: 0, y: 0 }, 
-    targetBody = null 
+  constructor({
+    x,
+    y,
+    size,
+    color,
+    MaxSpeed = 55,
+    thrust = 0.1,
+    drag = 0.99,
+    acceleration = { x: 0, y: 0 },
+    targetBody = null,
   } = {}) {
     super({ x, y, size, color });
     this.type = 'Spaceship';
@@ -627,7 +631,7 @@ export class Spaceship extends Actor {
     this.radarContacts = [];
     this.equipment = {};
 
-    console.log("This ship: ", this)
+    console.log('This ship: ', this);
     this.addEquipment(
       new ProjectileTurret({
         offsetX: -19,
@@ -767,6 +771,25 @@ export class Spaceship extends Actor {
       actor.setAttachedWorldPosition(this);
     }
   }
+}
+
+function addRandomSpread(direction, spreadPercentage) {
+  // Adjust the spread calculation here
+  let maxSpread = (Math.PI / 180) * (360 * spreadPercentage / 100) / 6; // Example adjustment
+
+  // Generate a random angle within the spread range
+  let randomSpread = Math.random() * (maxSpread * 2) - maxSpread;
+
+  // Add the random spread to the direction
+  let newDirection = direction + randomSpread;
+
+  // Normalize the new direction
+  newDirection = newDirection % (2 * Math.PI);
+  if (newDirection < 0) {
+      newDirection += 2 * Math.PI;
+  }
+
+  return newDirection;
 }
 
 console.log('Actors Loaded');
