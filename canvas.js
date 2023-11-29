@@ -68,6 +68,8 @@ export function drawActor(ctx, panX, panY, actor) {
       drawShip(ctx, actor, panX, panY);
     } else if (actor instanceof Projectile) {
       drawProjectile(ctx, actor, panX, panY);
+    } else if (actor instanceof Hardpoint) {
+      drawAngledArc({ctx, x: actor.x, y: actor.y, distance: actor.range, direction: actor.rotation, angle: actor.accuracy})
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });
@@ -282,8 +284,40 @@ function drawGrid() {
   //}
 
   drawnSectors.clear();
+
+  drawAngledArc({ctx, x: 350, y: 100, distance: 250, direction: 30, angle: 25}); // Draws a 45 degree arc
   ctx.restore();
 }
+
+function drawAngledArc({ctx, 
+  x = 350, 
+  y = 100, 
+  distance = 250, 
+  direction = 30,
+  angle = 25
+} = {}) {
+ 
+  const startAngle = direction - (angle / 2)
+  // Convert angles from degrees to radians
+  let startAngleRadians = startAngle * Math.PI / 180;
+  let endAngleRadians = (startAngle + angle) * Math.PI / 180;
+
+  // Begin path
+  ctx.beginPath();
+
+  // Draw the arc
+  ctx.arc(x, y, distance, startAngleRadians, endAngleRadians);
+
+  // Draw the lines to complete the sector (if needed)
+  if (angle < 360) {
+      ctx.lineTo(x, y);
+      ctx.lineTo(x + distance * Math.cos(startAngleRadians), y + distance * Math.sin(startAngleRadians));
+  }
+
+  // Stroke or fill the path as required
+  ctx.stroke(); // or ctx.fill();
+}
+
 
 export function initEventListeners() {
   window.addEventListener('resize', setCanvasSize);
