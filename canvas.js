@@ -297,7 +297,6 @@ function drawAngledArc({
   ctx,
   x = 350,
   y = 100,
-  initialDistance = 250,
   distance = 1000,
   rotation = 30,
   angle = 25,
