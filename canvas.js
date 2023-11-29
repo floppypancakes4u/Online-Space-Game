@@ -309,7 +309,7 @@ function drawAngledArc({
   // Save the current context state
   ctx.save();
 
-  for (let incDistance = initialDistance; incDistance <= distance; incDistance += interval) {
+  for (let incDistance = 0; incDistance <= distance; incDistance += interval) {
     // Calculate the start and end angles relative to the rotation for each arc
     let startAngleRadians = rotation - halfAngleRadians;
     let endAngleRadians = rotation + halfAngleRadians;
