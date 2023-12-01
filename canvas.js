@@ -70,14 +70,17 @@ export function drawActor(ctx, panX, panY, actor) {
     } else if (actor instanceof Projectile) {
       drawProjectile(ctx, actor, panX, panY);
     } else if (actor instanceof Hardpoint) {
-      drawAngledArc({
-        ctx,
-        x: actor.x - panX,
-        y: actor.y - panY,
-        distance: Math.min(actor.range, actor.owningActor.getRadarRange()),
-        rotation: actor.rotation,
-        angle: actor.accuracy,
-      });
+      if (actor.controlled) {
+        drawAngledArc({
+          ctx,
+          x: actor.x - panX,
+          y: actor.y - panY,
+          distance: Math.min(actor.range, actor.owningActor.getRadarRange()),
+          rotation: actor.rotation,
+          angle: actor.accuracy,
+        });
+      }
+     
     }
 
     if (actor.selected) drawReticle({ actor, shape: 'square', color: 'gray' });

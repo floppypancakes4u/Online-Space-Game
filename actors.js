@@ -394,11 +394,16 @@ export class Equipment extends Actor {
   constructor({ x, y, size, color, activeEventHandler = null } = {}) {
     super({ x, y, size, color });
     this.activeEventHandler = activeEventHandler;
+    this.controlled = false;
   }
 
   activate() {}
 
   deactivate() {}
+
+  setControlled(state) {
+    this.controlled = state;
+  }
 }
 
 export class Hardpoint extends Equipment {
@@ -759,11 +764,14 @@ export class Spaceship extends Actor {
   cycleActiveWeaponSelection(state) {
     console.log(state)
 
+    this.hardpoints[this.weaponSelectionIndex].setControlled(false);
 
     this.weaponSelectionIndex++;
 
-    if (this.weaponSelectionIndex > this.hardpoints.length) this.weaponSelectionIndex = 0;
-    console.log(this.weaponSelectionIndex)
+    if (this.weaponSelectionIndex >= this.hardpoints.length) this.weaponSelectionIndex = 0;
+    
+    this.hardpoints[this.weaponSelectionIndex].setControlled(true);
+    console.log("Weapon selected", this.hardpoints[this.weaponSelectionIndex])
   }
 
   HandleShipMovement() {
@@ -810,15 +818,10 @@ export class Spaceship extends Actor {
   }
 
   handleShipEquipment(deltaTime) {
-    // if (this.spacePressed) {
-    //   for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
-    //     selectedEquipment.setActive(this.spacePressed);
-    //   }
-    // }
-
-    // for (const [ID, selectedEquipment] of Object.entries(this.hardpoints)) {
-    //   selectedEquipment.setActive(this.spacePressed);
-    // }
+    
+    for (const [ID, selectedEquipment] of Object.entries(this.hardpoints)) {
+      if (selectedEquipment.controlled) selectedEquipment.setActive(this.spacePressed);
+    }
   }
 
   customUpdate(deltaTime) {
