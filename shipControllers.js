@@ -121,7 +121,8 @@ export class PlayerShipController {
     this.ship.rotateLeft(this.keys.a);
     this.ship.rotateRight(this.keys.d);
     this.ship.space(this.keys[" "])
-    doOnceKey("e", this.keys.e, this.ship.cycleActiveWeaponSelection)
+    
+    if (doOnceKey("e", this.keys.e)) this.ship.cycleActiveWeaponSelection(true)
 
     if (this.keys.w || this.keys.s || this.keys.a || this.keys.d)
       this.ship.disableAutopilot();
@@ -141,11 +142,11 @@ function doOnceKey(key, state, func) {
 
   if (!pressedKeys[key] && state) {
     pressedKeys[key] = true;
-    func(true);
+    return true
   }
 
   if (pressedKeys[key] && !state) {
     pressedKeys[key] = false;
-    func(false);
+    return false
   }
 }

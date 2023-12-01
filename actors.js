@@ -667,11 +667,12 @@ export class Spaceship extends Actor {
     this.acceleration = acceleration;
     this.targetBody = targetBody;
     this.radarContacts = [];
-    this.equipment = {};
+    this.hardpoints = [];
     this.effectiveRadarRange = 700;
+    this.weaponSelectionIndex = 0;
 
     console.log('This ship: ', this);
-    this.addEquipment(
+    this.addHardpoint(
       new ProjectileTurret({
         offsetX: -19,
         offsetY: 12,
@@ -680,7 +681,7 @@ export class Spaceship extends Actor {
       })
     );
 
-    this.addEquipment(
+    this.addHardpoint(
       new ProjectileTurret({
         offsetX: -19,
         offsetY: -12,
@@ -696,8 +697,8 @@ export class Spaceship extends Actor {
     this.removeContact(actor);
   }
 
-  addEquipment(newEquipment) {
-    this.equipment[newEquipment.ID] = newEquipment;
+  addHardpoint(newEquipment) {
+    this.hardpoints.push(newEquipment);
   }
 
   getRadarRange() {
@@ -710,7 +711,7 @@ export class Spaceship extends Actor {
 
       if (actor != this) {
         // Check for addition to radarContacts
-        if (range <= radarRange) {
+        if (range <= radarRange && actor instanceof Projectile == false) {
           if (!this.radarContacts.includes(actor)) {
             this.radarContacts.push(actor);
             const event = new CustomEvent('RadarContactUpdate', {
@@ -757,6 +758,12 @@ export class Spaceship extends Actor {
 
   cycleActiveWeaponSelection(state) {
     console.log(state)
+
+
+    this.weaponSelectionIndex++;
+
+    if (this.weaponSelectionIndex > this.hardpoints.length) this.weaponSelectionIndex = 0;
+    console.log(this.weaponSelectionIndex)
   }
 
   HandleShipMovement() {
@@ -808,9 +815,10 @@ export class Spaceship extends Actor {
     //     selectedEquipment.setActive(this.spacePressed);
     //   }
     // }
-    for (const [ID, selectedEquipment] of Object.entries(this.equipment)) {
-      selectedEquipment.setActive(this.spacePressed);
-    }
+
+    // for (const [ID, selectedEquipment] of Object.entries(this.hardpoints)) {
+    //   selectedEquipment.setActive(this.spacePressed);
+    // }
   }
 
   customUpdate(deltaTime) {
@@ -826,7 +834,7 @@ export class Spaceship extends Actor {
     //   drawReticle({ actor: contact, color: 'yellow', style: 'dotted', showText: false });
     // });
 
-    for (const [ID, actor] of Object.entries(this.equipment)) {
+    for (const [ID, actor] of Object.entries(this.hardpoints)) {
       actor.setAttachedWorldPosition(this);
     }
   }
