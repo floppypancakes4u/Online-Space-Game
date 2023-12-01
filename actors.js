@@ -755,6 +755,10 @@ export class Spaceship extends Actor {
     this.targetBody = bodies[randomIndex];
   }
 
+  cycleActiveWeaponSelection(state) {
+    console.log(state)
+  }
+
   HandleShipMovement() {
     // Apply rotation
     this.rotation %= Math.PI * 2;

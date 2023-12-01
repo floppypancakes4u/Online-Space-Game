@@ -17,6 +17,17 @@ export class PlayerShipController {
       s: false,
       d: false,
       ' ': false,
+      e: false,
+      "1": false,
+      "2": false,
+      "3": false,
+      "4": false,
+      "5": false,
+      "6": false,
+      "7": false,
+      "8": false,
+      "9": false,
+      "0": false,
     };
 
     window.addEventListener('keydown', (event) => {
@@ -110,11 +121,31 @@ export class PlayerShipController {
     this.ship.rotateLeft(this.keys.a);
     this.ship.rotateRight(this.keys.d);
     this.ship.space(this.keys[" "])
+    doOnceKey("e", this.keys.e, this.ship.cycleActiveWeaponSelection)
 
     if (this.keys.w || this.keys.s || this.keys.a || this.keys.d)
       this.ship.disableAutopilot();
 
     this.ship.update(); // Continue to update the ship's position and state
     this.centerCameraOnShip();
+  }
+}
+
+var pressedKeys = {}
+
+// This will set active keys and return true only the first time the key is called
+// Useful for key button presses until a more elegant solution is developed
+// Passes the result one time to the func
+function doOnceKey(key, state, func) {
+  if (pressedKeys[key] == undefined) pressedKeys[key] = false;
+
+  if (!pressedKeys[key] && state) {
+    pressedKeys[key] = true;
+    func(true);
+  }
+
+  if (pressedKeys[key] && !state) {
+    pressedKeys[key] = false;
+    func(false);
   }
 }
