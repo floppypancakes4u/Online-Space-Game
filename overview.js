@@ -11,11 +11,15 @@ export class Overview {
     this.panel = jsPanel.create({
       theme: 'dark',
       headerLogo: '<i class="fad fa-home-heart ml-2"></i>',
-      headerTitle: "I'm a jsPanel",
+      headerTitle: "Radar Contacts",
       headerToolbar: `<span class="text-sm">Overview</span>`,
-      footerToolbar:
-        '<span class="flex flex-grow">You can have a footer toolbar too</span>' +
-        '<i class="fal fa-clock mr-2"></i><span class="clock">loading ...</span>',
+      position: {
+        my: 'right-top',
+        at: 'right-top',
+      },
+      // footerToolbar:
+      //   '<span class="flex flex-grow">You can have a footer toolbar too</span>' +
+      //   '<i class="fal fa-clock mr-2"></i><span class="clock">loading ...</span>',
       panelSize: {
         width: () => {
           return Math.min(300, window.innerWidth * 0.9);
@@ -27,24 +31,24 @@ export class Overview {
       animateIn: 'jsPanelFadeIn',
       content: `<div class="overviewArea"><table id="overviewTable"><thead><tr><th>Distance</th><th>Name</th><th>Action</th></tr></thead><tbody></tbody></table></div>`,
       onwindowresize: true,
-      callback: function (panel) {
-        function clock() {
-          let time = new Date(),
-            hours = time.getHours(),
-            minutes = time.getMinutes(),
-            seconds = time.getSeconds();
-          panel.footer.querySelectorAll('.clock')[0].innerHTML = `${harold(
-            hours
-          )}:${harold(minutes)}:${harold(seconds)}`;
-          function harold(standIn) {
-            if (standIn < 10) {
-              standIn = '0' + standIn;
-            }
-            return standIn;
-          }
-        }
-        setInterval(clock, 1000);
-      },
+      // callback: function (panel) {
+      //   function clock() {
+      //     let time = new Date(),
+      //       hours = time.getHours(),
+      //       minutes = time.getMinutes(),
+      //       seconds = time.getSeconds();
+      //     panel.footer.querySelectorAll('.clock')[0].innerHTML = `${harold(
+      //       hours
+      //     )}:${harold(minutes)}:${harold(seconds)}`;
+      //     function harold(standIn) {
+      //       if (standIn < 10) {
+      //         standIn = '0' + standIn;
+      //       }
+      //       return standIn;
+      //     }
+      //   }
+      //   setInterval(clock, 1000);
+      // },
     });
 
     // The UI starts after the actor is created, so make sure to grab any existing
