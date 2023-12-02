@@ -793,7 +793,7 @@ export class Spaceship extends Actor {
       this.velocity.x *= 1 - this.thrust * 0.1;
       this.velocity.y *= 1 - this.thrust * 0.1;
 
-      // Ensure velocity doesn't go below zero
+      // Ensure velocity doesn't sta below zero
       if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
       if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0;
     }
