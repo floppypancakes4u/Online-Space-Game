@@ -70,6 +70,7 @@ class EquipmentRow {
     this.actor = actor;
     this.divContainer = null;
     this.markedControlled = false;
+    this.lastRecoil = 0;
     this.init();
   }
 
@@ -153,6 +154,10 @@ class EquipmentRow {
     return this.divContainer;
   }
 
+  updateRecoil(recoilAmount) {
+    document.getElementById(`${this.actor.ID}-hardpoint-recoil`).style.width = `${recoilAmount * 100}%`
+  }
+
   checkForUpdates() {
     // Add selected class if it's not set
     if (this.actor.controlled && !this.markedControlled) {
@@ -165,6 +170,9 @@ class EquipmentRow {
       this.markedControlled = false;
       this.divContainer.classList.remove("selected");
     }
+
+    const recoil = this.actor.getRemainingRecoil();
+    if (this.lastRecoil != recoil) this.updateRecoil(recoil);
   }
 
   update() {
