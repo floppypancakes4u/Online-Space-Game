@@ -156,6 +156,8 @@ class EquipmentRow {
 
   updateRecoil(recoilAmount) {
     document.getElementById(`${this.actor.ID}-hardpoint-recoil`).style.width = `${recoilAmount * 100}%`
+    this.lastRecoil = recoilAmount;
+    console.log(document.getElementById(`${this.actor.ID}-hardpoint-recoil`))
   }
 
   checkForUpdates() {
