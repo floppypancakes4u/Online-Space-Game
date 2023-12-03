@@ -134,9 +134,7 @@ class EquipmentRow {
     
     this.divContainer.className = 'equipment-row'; // Setting a class name
     this.divContainer.setAttribute("ActorID", `${this.actor.ID}`);
-    this.divContainer.id = `${this.actor.ID}-equipment-div-container`;
-
-    
+    this.divContainer.id = `${this.actor.ID}-equipment-div-container`;    
     
     const progressBar = document.createElement('div');
     progressBar.className = 'progress-bar';    
