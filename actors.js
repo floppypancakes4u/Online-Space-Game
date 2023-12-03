@@ -98,7 +98,6 @@ export class Actor {
     this.type = type;
     this.currentSector = null;
     this.children = [];
-    this.name = this.ID;
     this.velocity = velocity;
     this.isThrusting = false;
     this.spacePressed = false;
