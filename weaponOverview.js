@@ -138,7 +138,6 @@ class EquipmentRow {
     
     const progressBar = document.createElement('div');
     progressBar.className = 'progress-bar';    
-    progressBar.style = "width: 100%"
     progressBar.setAttribute("ActorID-recoil", `${this.actor.ID}`);
     progressBar.id = `${this.actor.ID}-hardpoint-recoil`;
     this.divContainer.appendChild(progressBar)
