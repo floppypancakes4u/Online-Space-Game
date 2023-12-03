@@ -52,7 +52,6 @@ export class WeaponOverview {
 
     // Get the new weapons div
     const wepsDiv = document.getElementById('weaponOverview');
-    console.log("wepsDiv", wepsDiv)
     this.owningActor.hardpoints.forEach((hardpoint) => {
       new EquipmentRow({overviewDiv: wepsDiv, actor: hardpoint})
     });
@@ -141,6 +140,7 @@ class EquipmentRow {
     
     const progressBar = document.createElement('div');
     progressBar.className = 'progress-bar';    
+    progressBar.style = "width: 100%"
     progressBar.setAttribute("ActorID-recoil", `${this.actor.ID}`);
     progressBar.id = `${this.actor.ID}-hardpoint-recoil`;
     this.divContainer.appendChild(progressBar)
@@ -157,7 +157,7 @@ class EquipmentRow {
   updateRecoil(recoilAmount) {
     document.getElementById(`${this.actor.ID}-hardpoint-recoil`).style.width = `${recoilAmount * 100}%`
     this.lastRecoil = recoilAmount;
-    console.log(document.getElementById(`${this.actor.ID}-hardpoint-recoil`))
+    console.log(`${recoilAmount * 100}%`)
   }
 
   checkForUpdates() {

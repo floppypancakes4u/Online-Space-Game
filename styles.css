@@ -168,15 +168,16 @@ th.sort-desc:after {
   margin: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  overflow: hidden; /* Ensures the progress bar does not overflow */
 }
 
 /* Selected state */
 .equipment-row.selected {
-  /* Styles for when the div is selected */
-  background-color: lightorange; /* Light orange background */
+  background-color: lightorange; /* Light orange background for the selected state */
   color: black; /* Optional: Change text color if needed */
 }
 
+/* Progress bar */
 .equipment-row .progress-bar {
   position: absolute;
   top: 0;
@@ -184,19 +185,19 @@ th.sort-desc:after {
   width: 50%; /* Adjust this width to represent progress */
   height: 100%;
   background-color: green; /* Color of your progress bar */
-  z-index: -1;
+  z-index: 1; /* Positioned above the equipment row but below the content */
 }
 
+/* Content of the equipment row */
 .equipment-row .weapon-div-content {
   position: relative;
-  z-index: 1; /* Makes sure the content is above the progress bar */
+  z-index: 2; /* Ensures this content is above the progress bar */
 }
 
+/* Styling for weapon overview */
 .weaponOverview {
-  width: 100%;     
-  height: 100%;    
+  width: 100%;
+  height: 100%;
   background-color: #333;
-  position: absolute; /* Added positioning */
-  top: 0;
-  left: 0;
+  position: relative; /* Positioned as relative */
 }
