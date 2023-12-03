@@ -135,8 +135,9 @@ class EquipmentRow {
     // Step 3: Optional - Add content, attributes, styles, etc.
     this.divContainer.innerHTML = this.actor.getName(); // Adding text content
     this.divContainer.className = 'equipment-row'; // Setting a class name
+    this.divContainer.setAttribute("ActorID", `${this.actor.ID}`);
 
-    this.divContainer.id = `${this.actor.id}-equipment-div-container`;
+    this.divContainer.id = `${this.actor.ID}-equipment-div-container`;
 
     return this.divContainer;
   }
