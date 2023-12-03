@@ -75,6 +75,8 @@ function getRandomElement(arr) {
 // Classes
 export class Actor {
   constructor({
+    name = "Test Actor",
+    description = "Test Actor Description",
     x = 0,
     y = 0,
     size = 1,
@@ -85,9 +87,8 @@ export class Actor {
     maxLifetime = 0,
     path = null,
   } = {}) {
-    this.ID = `${this.constructor.name}-${Math.floor(
-      Math.random() * 10000
-    )}-${Date.now()}`;
+    this.name = name;
+    this.description = description;
     this.x = x;
     this.y = y;
     this.startPos = { x, y };
@@ -108,6 +109,12 @@ export class Actor {
     this.path = path;
     this.hullHealth = 5;
     this.markedForDestruction = false;
+
+    
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
+
     actors[this.ID] = this;
 
     this.init();
@@ -118,16 +125,14 @@ export class Actor {
     document.addEventListener('World:ActorDestroyed', function (event) {
       const { actor } = event.detail;
       _.otherActorDestroyed(actor);
-      //console.log("Actor Deleted: ", actor);
     });
   }
 
   getName() {
-    return this.constructor.name;
+    return this.name;
   }
 
   applyDamage(projectile) {
-    //console.log("applyDamage", projectile)
     if (projectile.type == 'kinetic') {
       this.hullHealth -= projectile.kineticDamage;
     }
@@ -149,13 +154,11 @@ export class Actor {
     });
     document.dispatchEvent(destroyedActorEvent);
 
-    //console.log("destroying self: ", this)
     delete actors[this.ID];
 
     // *** TESTING *** //
 
     this.isActive = false;
-    //console.log("Destroyed: ", this.constructor.name, this.distanceTo(this.startPos))
 
     // *** TESTING *** //
 
@@ -423,12 +426,14 @@ export class ProjectileTurret extends WeaponHardpoint {
   constructor(options = {}) {
     super(options);
     const {
+      name = "Test Projectile Turret",
+      description = "Turrent Description. Might have backstory here",
       x = 0,
       y = 0,
-      projectilesPerFiring = 30, // determines how many projectiles fire per fireWeapon being called. Useful for burst fire weapons
-      delayBetweenBurstProjectiles = 0.1, // How long between each projectile if projectilesPerFiring is greater than 1. If it is 1, it has no effect.
+      projectilesPerFiring= 40, // determines how many projectiles fire per fireWeapon being called. Useful for burst fire weapons
+      delayBetweenBurstProjectiles = 0.01, // How long between each projectile if projectilesPerFiring is greater than 1. If it is 1, it has no effect.
       // if the above 2 multiplied together are greater than the recoil, then the progress bar will flash indicating it his completely overheated and will not fire again till it stops flashing
-      recoil = 130, // Millisecond delay between how long the weapon can fire another shot.
+      recoil = 250, // Millisecond delay between how long the weapon can fire another shot. Note, this is still applied on top of burst shots
       range = 788,
       accuracy = 25,
       offsetX = 5,
@@ -436,10 +441,8 @@ export class ProjectileTurret extends WeaponHardpoint {
       existsInWorld = false,
       owningActor = null,
     } = options;
-
-    this.ID = `${this.constructor.name}-${Math.floor(
-      Math.random() * 10000
-    )}-${Date.now()}`;
+    this.name = name;
+    this.description = description;
     this.x = x;
     this.y = y;
     this.recoil = recoil;
@@ -451,8 +454,12 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.offsetY = offsetY;
     this.existsInWorld = existsInWorld;
     this.owningActor = owningActor;
-    this.overheating = false;
 
+    //Instance Specific
+    this.ID = `${this.constructor.name}-${Math.floor(
+      Math.random() * 10000
+    )}-${Date.now()}`;
+    this.overheating = false; // Is the gun currently overheating
     this.recoilWaitTime = 0; // How long the weapon has been waiting until it can fire again. Counts down from recoilTime
 
     console.log(options);
@@ -480,25 +487,12 @@ export class ProjectileTurret extends WeaponHardpoint {
   }
 
   setActive(active) {
-    // if (active) {
-    //   if (this.activeEventHandler === null) {
-    //     this.activeEventHandler = setInterval(() => {
-    //       this.fireWeapon();
-    //     }, this.recoil * 1000);
-
-    //     //console.log('Activated Turret');
-    //   }
-    // } else {
-    //   if (this.activeEventHandler) {
-    //     clearInterval(this.activeEventHandler);
-    //     this.activeEventHandler = null;
-    //     //console.log('De-Activated Turret');
-    //   }
-    // }
     this.isFiring = active;
   }
 
   fireWeapon() {
+    let addedDelay = 0;
+    
     if (this.projectilesPerFiring == 1) {
       new Projectile({
         ship: this.owningActor,
@@ -509,25 +503,29 @@ export class ProjectileTurret extends WeaponHardpoint {
         range: Math.min(this.range, this.owningActor.getRadarRange()),
         radarContacts: this.owningActor.radarContacts,
       });
-      return;
+      
+      addedDelay = this.recoil;
     }
 
-    for (let i = 0; i < this.projectilesPerFiring - 1; i++) {
-      setTimeout(() => {
-        new Projectile({
-          ship: this.owningActor,
-          x: this.x,
-          y: this.y,
-          color: 'red',
-          rotation: addRandomSpread(this.rotation, this.accuracy),
-          range: Math.min(this.range, this.owningActor.getRadarRange()),
-          radarContacts: this.owningActor.radarContacts,
-        });
-      }, i * this.delayBetweenBurstProjectiles * 1000)
-    }
+    if (this.projectilesPerFiring > 1) {
+      for (let i = 0; i < this.projectilesPerFiring - 1; i++) {
+        setTimeout(() => {
+          new Projectile({
+            ship: this.owningActor,
+            x: this.x,
+            y: this.y,
+            color: 'red',
+            rotation: addRandomSpread(this.rotation, this.accuracy),
+            range: Math.min(this.range, this.owningActor.getRadarRange()),
+            radarContacts: this.owningActor.radarContacts,
+          });
+        }, i * this.delayBetweenBurstProjectiles * 1000)
+      }
 
-    //console.log((this.delayBetweenBurstProjectiles * this.projectilesPerFiring) * 1000)
-    this.recoilWaitTime += (this.delayBetweenBurstProjectiles * this.projectilesPerFiring) * 1000;     
+      addedDelay = ((this.delayBetweenBurstProjectiles * this.projectilesPerFiring) * 1000) + this.recoil
+    }    
+
+    this.recoilWaitTime += addedDelay;     
   }
 
   getRemainingRecoil() {
@@ -537,13 +535,11 @@ export class ProjectileTurret extends WeaponHardpoint {
   reduceCooldown(delta) {
 // Reduce our wait time. When it is 0, we can fire again.
     this.recoilWaitTime = Math.floor(Math.max(0, this.recoilWaitTime - delta));
-    if (this.recoilWaitTime> 0) console.log(this.recoilWaitTime)
   }
 
   checkIfFiring(delta) {
     if (this.isFiring) {
       if (this.recoilWaitTime == 0) {
-        this.recoilWaitTime = this.recoil;
         this.fireWeapon();
       }
     }
@@ -737,23 +733,355 @@ export class Spaceship extends Actor {
     this.weaponSelectionIndex = 0;
 
     console.log('This ship: ', this);
-    this.addHardpoint(
-      new ProjectileTurret({
-        offsetX: -19,
-        offsetY: 12,
-        existsInWorld: true,
-        owningActor: this,
-      })
+
+    const turretExamples = [{
+      name: "Hailstorm Blitzer",
+      description: "Rapid-fire turret that excels in short-range combat, unleashing a barrage of projectiles.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0.02,
+      recoil: 50,
+      range: 400,
+      accuracy: 30,
+      offsetX: 6,
+      offsetY: 6
+    },
+    {
+      name: "Thunderous Howitzer",
+      description: "Delivers powerful, long-range artillery shots. Slow but devastating.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 8000,
+      range: 2000,
+      accuracy: 10,
+      offsetX: 15,
+      offsetY: 15
+    },
+    {
+      name: "Twin Cobra",
+      description: "Dual-barrel turret that fires alternating shots, providing a consistent stream of damage.",
+      projectilesPerFiring: 2,
+      delayBetweenBurstProjectiles: 0.1,
+      recoil: 300,
+      range: 700,
+      accuracy: 18,
+      offsetX: 10,
+      offsetY: 10
+    },
+    {
+      name: "Ion Disruptor",
+      description: "Fires ionized energy bolts that can disrupt electronic systems of enemy ships.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 4000,
+      range: 1100,
+      accuracy: 7,
+      offsetX: 8,
+      offsetY: 8
+    },
+    {
+      name: "Plasma Flak Cannon",
+      description: "A turret that shoots explosive plasma shells, effective against groups of targets.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 2500,
+      range: 600,
+      accuracy: 35,
+      offsetX: 7,
+      offsetY: 7
+    },{
+      name: "Solar Flare Emitter",
+      description: "Emits a burst of solar energy, effective against shields.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 3000,
+      range: 500,
+      accuracy: 50,
+      offsetX: 5,
+      offsetY: 5
+    },
+    {
+      name: "Quantum Displacer",
+      description: "Distorts space-time, creating unpredictable projectile paths.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0.1,
+      recoil: 4500,
+      range: 900,
+      accuracy: 60,
+      offsetX: 12,
+      offsetY: 12
+    },
+    {
+      name: "Neutron Pulser",
+      description: "Fires concentrated neutron beams, highly effective against armor.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 4000,
+      range: 1000,
+      accuracy: 8,
+      offsetX: 9,
+      offsetY: 9
+    },
+    {
+      name: "Graviton Launcher",
+      description: "Launches projectiles that alter gravitational fields, slowing targets.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 5000,
+      range: 700,
+      accuracy: 20,
+      offsetX: 10,
+      offsetY: 10
+    },
+    {
+      name: "Cosmic Shredder",
+      description: "Fires a stream of micro-meteors, shredding through enemy defenses.",
+      projectilesPerFiring: 10,
+      delayBetweenBurstProjectiles: 0.05,
+      recoil: 1000,
+      range: 400,
+      accuracy: 25,
+      offsetX: 6,
+      offsetY: 6
+    },{
+      name: "Echo Pulse Turret",
+      description: "Fires soundwave pulses that can penetrate through multiple targets.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 3500,
+      range: 800,
+      accuracy: 12,
+      offsetX: 7,
+      offsetY: 7
+    },
+    {
+      name: "Void Beam Projector",
+      description: "Projects a beam that phases through normal matter, hitting internal components.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 6000,
+      range: 1200,
+      accuracy: 4,
+      offsetX: 8,
+      offsetY: 8
+    },
+    {
+      name: "Frostbite Blaster",
+      description: "Slows down enemy movement and firing speed with a chilling blast.",
+      projectilesPerFiring: 3,
+      delayBetweenBurstProjectiles: 0.1,
+      recoil: 2000,
+      range: 500,
+      accuracy: 30,
+      offsetX: 6,
+      offsetY: 6
+    },
+    {
+      name: "Magnetic Storm Cannon",
+      description: "Creates a magnetic field that disrupts enemy electronics and projectiles.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 7000,
+      range: 1000,
+      accuracy: 15,
+      offsetX: 11,
+      offsetY: 11
+    },
+    {
+      name: "Inferno Launcher",
+      description: "Engulfs targets in flames, causing continuous damage over time.",
+      projectilesPerFiring: 5,
+      delayBetweenBurstProjectiles: 0.02,
+      recoil: 1500,
+      range: 300,
+      accuracy: 40,
+      offsetX: 5,
+      offsetY: 5
+    },
+    {
+      name: "Celestial Impactor",
+      description: "Fires a dense projectile that causes significant knockback.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 8000,
+      range: 1500,
+      accuracy: 6,
+      offsetX: 14,
+      offsetY: 14
+    },
+    {
+      name: "Nebula Mist Sprayer",
+      description: "Creates a cloud of obscuring particles, reducing enemy visibility and accuracy.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 2500,
+      range: 400,
+      accuracy: 50,
+      offsetX: 4,
+      offsetY: 4
+    },
+    {
+      name: "Photon Scattergun",
+      description: "Shoots a wide spread of photon beams, ideal for hitting multiple targets.",
+      projectilesPerFiring: 6,
+      delayBetweenBurstProjectiles: 0.03,
+      recoil: 1200,
+      range: 350,
+      accuracy: 45,
+      offsetX: 6,
+      offsetY: 6
+    },
+    {
+      name: "Arc Lightning Rod",
+      description: "Generates chain lightning that jumps between nearby targets.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 3000,
+      range: 550,
+      accuracy: 25,
+      offsetX: 7,
+      offsetY: 7
+    },
+    {
+      name: "Tempest Vortex Cannon",
+      description: "Creates a small vortex at the point of impact, pulling in nearby enemies.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 5000,
+      range: 650,
+      accuracy: 20,
+      offsetX: 9,
+      offsetY: 9
+    },
+    {
+      name: "Warp Field Emitter",
+      description: "Distorts space around the projectile, making it difficult to predict and dodge.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 4500,
+      range: 700,
+      accuracy: 30,
+      offsetX: 8,
+      offsetY: 8
+    },
+    {
+      name: "Stellar Flak Artillery",
+      description: "Fires explosive shells that detonate in proximity to targets, showering them with shrapnel.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 6000,
+      range: 800,
+      accuracy: 35,
+      offsetX: 10,
+      offsetY: 10
+    },
+    {
+      name: "Gravity Wave Discharger",
+      description: "Emits waves that disrupt enemy positioning and formation.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 5500,
+      range: 750,
+      accuracy: 18,
+      offsetX: 9,
+      offsetY: 9
+    },
+    {
+      name: "Hypernova Blitzer",
+      description: "A high-rate-of-fire turret that overwhelms targets with sheer volume of fire.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0.01,
+      recoil: 200,
+      range: 450,
+      accuracy: 22,
+      offsetX: 7,
+      offsetY: 7
+    },
+    {
+      name: "Dark Matter Beam",
+      description: "Fires a concentrated beam of dark matter, causing severe damage over time.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 4000,
+      range: 900,
+      accuracy: 5,
+      offsetX: 8,
+      offsetY: 8
+    },
+    {
+      name: "Electrostatic Pulse Cannon",
+      description: "Disables enemy shields and systems temporarily with a burst of electromagnetic energy.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 3500,
+      range: 600,
+      accuracy: 28,
+      offsetX: 6,
+      offsetY: 6
+    },
+    {
+      name: "Sonic Wave Emitter",
+      description: "Emits powerful sound waves that can disrupt enemy formations and cause disorientation.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 3000,
+      range: 500,
+      accuracy: 33,
+      offsetX: 5,
+      offsetY: 5
+    },
+    {
+      name: "Asteroid Hurler",
+      description: "Launches large, slow-moving projectiles that cause massive damage on impact.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 10000,
+      range: 1000,
+      accuracy: 50,
+      offsetX: 20,
+      offsetY: 20
+    },
+    {
+      name: "Subspace Ripper",
+      description: "Creates small tears in subspace, damaging anything in its vicinity.",
+      projectilesPerFiring: 1,
+      delayBetweenBurstProjectiles: 0,
+      recoil: 7000,
+      range: 850,
+      accuracy: 15,
+      offsetX: 12,
+      offsetY: 12
+    }];
+
+    turretExamples.forEach(turret => {
+      this.addHardpoint(turret);
+    });
+
+    this.addHardpoint({
+      name: "Burst Cannon",
+      description: "Fires in short, controlled bursts. Balances firepower and precision.",
+      projectilesPerFiring: 3,
+      delayBetweenBurstProjectiles: 0.1,
+      recoil: 700,
+      range: 800,
+      accuracy: 15,
+      offsetX: 12,
+      offsetY: 12
+    }
     );
 
-    this.addHardpoint(
-      new ProjectileTurret({
-        offsetX: -19,
-        offsetY: -12,
-        existsInWorld: true,
-        owningActor: this,
-      })
-    );
+    this.addHardpoint({
+      name: "Scatter Shotgun",
+      description: "Unleashes a spread of projectiles. Ideal for close-range engagements.",
+      projectilesPerFiring: 15,
+      delayBetweenBurstProjectiles: 0.0,
+      recoil: 500,
+      range: 300,
+      accuracy: 40,
+      offsetX: 5,
+      offsetY: 5
+    }
+  );
+
 
     this.checkActorContacts(this.getRadarRange());
   }
@@ -762,8 +1090,11 @@ export class Spaceship extends Actor {
     this.removeContact(actor);
   }
 
-  addHardpoint(newEquipment) {
-    this.hardpoints.push(newEquipment);
+  addHardpoint(data) {
+    const newHardpointData = data;
+    newHardpointData.existsInWorld = true;
+    newHardpointData.owningActor = this;
+    this.hardpoints.push(new ProjectileTurret(newHardpointData));
   }
 
   getRadarRange() {
