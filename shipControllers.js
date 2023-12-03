@@ -1,5 +1,6 @@
 import { setCamera } from './canvas.js';
 import { Overview } from './overview.js';
+import { WeaponOverview } from './weaponOverview.js'
 
 export class PlayerShipController {
   constructor(spaceship, ctx) {
@@ -8,6 +9,7 @@ export class PlayerShipController {
     this.selectedActor = null;
     this.initListeners();
     this.overview = new Overview(this, this.ship);
+    this.weaponOverview = new WeaponOverview(this, this.ship);
   }
 
   initListeners() {
