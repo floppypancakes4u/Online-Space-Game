@@ -183,7 +183,7 @@ th.sort-desc:after {
   top: 0;
   left: 0;
   width: 50%; /* Adjust this width to represent progress */
-  height: 100%;
+  height: 0%;
   background-color: green; /* Color of your progress bar */
   z-index: 1; /* Positioned above the equipment row but below the content */
 }

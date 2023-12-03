@@ -126,7 +126,7 @@ class EquipmentRow {
     /// NEW BELOG
     this.overviewDiv.appendChild(this.createRow());
 
-    setInterval(() => { this.update() }, 50);
+    setInterval(() => { this.update() }, 10);
   }
 
   createRow() {
