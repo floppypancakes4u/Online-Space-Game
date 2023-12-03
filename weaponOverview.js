@@ -70,6 +70,7 @@ class EquipmentRow {
     this.divContainer = null;
     this.markedControlled = false;
     this.lastRecoil = 0;
+    this.overheating = false;
     this.init();
   }
 
@@ -154,7 +155,14 @@ class EquipmentRow {
   updateRecoil(recoilAmount) {
     document.getElementById(`${this.actor.ID}-hardpoint-recoil`).style.width = `${recoilAmount * 100}%`
     this.lastRecoil = recoilAmount;
-    console.log(`${recoilAmount * 100}%`)
+  }
+
+  setOverheatingState(state) {
+    this.overheating = state;
+    this.overheating ? document.getElementById(`${this.actor.ID}-hardpoint-recoil`).classList.add("overheating") : document.getElementById(`${this.actor.ID}-hardpoint-recoil`).classList.remove("overheating");
+
+    console.log("this.overheating",this.overheating)
+
   }
 
   checkForUpdates() {
@@ -168,6 +176,16 @@ class EquipmentRow {
     if (!this.actor.controlled && this.markedControlled) {
       this.markedControlled = false;
       this.divContainer.classList.remove("selected");
+    }
+
+    // Set the overheating state
+    if (this.actor.overheating && !this.overheating) {
+      this.setOverheatingState(true);
+    }
+
+    // Opposite. lol
+    if (!this.actor.overheating && this.overheating) {
+      this.setOverheatingState(false);
     }
 
     const recoil = this.actor.getRemainingRecoil();

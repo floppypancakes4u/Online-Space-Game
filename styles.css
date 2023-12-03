@@ -161,6 +161,11 @@ th.sort-desc:after {
   background-color: rgba(51, 51, 51, 0);
 } */
 
+@keyframes flashing {
+  0%, 100% { background-color: rgb(129, 95, 3); } /* Original color */
+  50% { background-color: red; } /* Flashing color */
+}
+
 /* Normal state */
 .equipment-row {
   position: relative;
@@ -186,6 +191,10 @@ th.sort-desc:after {
   height: 100%;
   background-color: rgb(129, 95, 3); /* Color of your progress bar */
   z-index: 1; /* Positioned above the equipment row but below the content */
+}
+
+.equipment-row .progress-bar.overheating {
+  animation: flashing 1s infinite; /* Apply the flashing animation */
 }
 
 /* Content of the equipment row */

@@ -89,7 +89,7 @@ export class Actor {
       Math.random() * 10000
     )}-${Date.now()}`;
     this.x = x;
-    this.y = y;    
+    this.y = y;
     this.startPos = { x, y };
     this.size = size;
     this.color = color;
@@ -116,8 +116,7 @@ export class Actor {
   init() {
     const _ = this;
     document.addEventListener('World:ActorDestroyed', function (event) {
-      const { actor } =
-        event.detail;
+      const { actor } = event.detail;
       _.otherActorDestroyed(actor);
       //console.log("Actor Deleted: ", actor);
     });
@@ -159,13 +158,11 @@ export class Actor {
     //console.log("Destroyed: ", this.constructor.name, this.distanceTo(this.startPos))
 
     // *** TESTING *** //
-    
+
     this.markedForDestruction = true;
   }
 
-  otherActorDestroyed(actor) {
-
-  }
+  otherActorDestroyed(actor) {}
 
   setMaxLifetime(lifetime) {
     this.maxLifetime = 0;
@@ -428,8 +425,10 @@ export class ProjectileTurret extends WeaponHardpoint {
     const {
       x = 0,
       y = 0,
-      amount = 1,
-      recoil = 130, // in milliseconds
+      projectilesPerFiring = 30, // determines how many projectiles fire per fireWeapon being called. Useful for burst fire weapons
+      delayBetweenBurstProjectiles = 0.1, // How long between each projectile if projectilesPerFiring is greater than 1. If it is 1, it has no effect.
+      // if the above 2 multiplied together are greater than the recoil, then the progress bar will flash indicating it his completely overheated and will not fire again till it stops flashing
+      recoil = 130, // Millisecond delay between how long the weapon can fire another shot.
       range = 788,
       accuracy = 25,
       offsetX = 5,
@@ -443,18 +442,24 @@ export class ProjectileTurret extends WeaponHardpoint {
     )}-${Date.now()}`;
     this.x = x;
     this.y = y;
-    this.recoilTime = recoil;
-    this.amount = amount;
+    this.recoil = recoil;
+    this.projectilesPerFiring = projectilesPerFiring;
+    this.delayBetweenBurstProjectiles = delayBetweenBurstProjectiles;
     this.range = range;
     this.accuracy = accuracy;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     this.existsInWorld = existsInWorld;
     this.owningActor = owningActor;
+    this.overheating = false;
 
     this.recoilWaitTime = 0; // How long the weapon has been waiting until it can fire again. Counts down from recoilTime
 
     console.log(options);
+  }
+
+  setOverheating(state) {
+    this.overheating = state;
   }
 
   setAttachedWorldPosition(parentActor) {
@@ -488,41 +493,65 @@ export class ProjectileTurret extends WeaponHardpoint {
     //     clearInterval(this.activeEventHandler);
     //     this.activeEventHandler = null;
     //     //console.log('De-Activated Turret');
-    //   } 
+    //   }
     // }
     this.isFiring = active;
   }
 
   fireWeapon() {
-    new Projectile({
-      ship: this,
-      x: this.x,
-      y: this.y,
-      color: 'red',
-      rotation: addRandomSpread(this.rotation, this.accuracy),
-      range: Math.min(this.range, this.owningActor.getRadarRange()),
-      radarContacts: this.owningActor.radarContacts,
-    });
+    if (this.projectilesPerFiring == 1) {
+      new Projectile({
+        ship: this.owningActor,
+        x: this.x,
+        y: this.y,
+        color: 'red',
+        rotation: addRandomSpread(this.rotation, this.accuracy),
+        range: Math.min(this.range, this.owningActor.getRadarRange()),
+        radarContacts: this.owningActor.radarContacts,
+      });
+      return;
+    }
+
+    for (let i = 0; i < this.projectilesPerFiring - 1; i++) {
+      setTimeout(() => {
+        new Projectile({
+          ship: this.owningActor,
+          x: this.x,
+          y: this.y,
+          color: 'red',
+          rotation: addRandomSpread(this.rotation, this.accuracy),
+          range: Math.min(this.range, this.owningActor.getRadarRange()),
+          radarContacts: this.owningActor.radarContacts,
+        });
+      }, i * this.delayBetweenBurstProjectiles * 1000)
+    }
+
+    //console.log((this.delayBetweenBurstProjectiles * this.projectilesPerFiring) * 1000)
+    this.recoilWaitTime += (this.delayBetweenBurstProjectiles * this.projectilesPerFiring) * 1000;     
   }
 
   getRemainingRecoil() {
-    return this.recoilWaitTime / this.recoilTime
+    return this.recoilWaitTime / this.recoil;
+  }
+
+  reduceCooldown(delta) {
+// Reduce our wait time. When it is 0, we can fire again.
+    this.recoilWaitTime = Math.floor(Math.max(0, this.recoilWaitTime - delta));
+    if (this.recoilWaitTime> 0) console.log(this.recoilWaitTime)
   }
 
   checkIfFiring(delta) {
-    // Reduce our wait time. When it is 0, we can fire again.
-    this.recoilWaitTime = Math.max(0, this.recoilWaitTime - delta);
-
     if (this.isFiring) {
       if (this.recoilWaitTime == 0) {
-        this.recoilWaitTime = this.recoilTime;
+        this.recoilWaitTime = this.recoil;
         this.fireWeapon();
       }
     }
   }
 
   customUpdate(delta) {
-    this.checkIfFiring(delta)
+    this. reduceCooldown(delta)
+    this.checkIfFiring(delta);
   }
 }
 
@@ -579,8 +608,12 @@ export class Projectile extends Actor {
     //const remainingDistance = this.getRemainingDistance(); // Assuming you have this method
     this.radarContacts.forEach((contact) => {
       const distanceToContact = this.distanceTo(contact); // Assuming you have this method
-      if (distanceToContact < 35 && contact instanceof Projectile == false && contact instanceof Hardpoint == false) {
-        console.log("Contacted: ", contact.constructor.name, distanceToContact)
+      if (
+        distanceToContact < 35 &&
+        contact instanceof Projectile == false &&
+        contact instanceof Hardpoint == false
+      ) {
+        console.log('Contacted: ', contact.constructor.name, distanceToContact);
         contact.applyDamage(this);
         this.destroy();
       }
@@ -723,7 +756,7 @@ export class Spaceship extends Actor {
     );
 
     this.checkActorContacts(this.getRadarRange());
-  }  
+  }
 
   otherActorDestroyed(actor) {
     this.removeContact(actor);
@@ -789,16 +822,15 @@ export class Spaceship extends Actor {
   }
 
   cycleActiveWeaponSelection(state) {
-    console.log(state)
-
     this.hardpoints[this.weaponSelectionIndex].setControlled(false);
 
     this.weaponSelectionIndex++;
 
-    if (this.weaponSelectionIndex >= this.hardpoints.length) this.weaponSelectionIndex = 0;
-    
+    if (this.weaponSelectionIndex >= this.hardpoints.length)
+      this.weaponSelectionIndex = 0;
+
     this.hardpoints[this.weaponSelectionIndex].setControlled(true);
-    console.log("Weapon selected", this.hardpoints[this.weaponSelectionIndex])
+    console.log('Weapon selected', this.hardpoints[this.weaponSelectionIndex]);
   }
 
   HandleShipMovement() {
@@ -845,9 +877,9 @@ export class Spaceship extends Actor {
   }
 
   handleShipEquipment(deltaTime) {
-    
     for (const [ID, selectedEquipment] of Object.entries(this.hardpoints)) {
-      if (selectedEquipment.controlled) selectedEquipment.setActive(this.spacePressed);
+      if (selectedEquipment.controlled)
+        selectedEquipment.setActive(this.spacePressed);
     }
   }
 
@@ -872,7 +904,7 @@ export class Spaceship extends Actor {
 
 function addRandomSpread(direction, spreadPercentage) {
   // Adjust the spread calculation here
-  let maxSpread = (Math.PI / 180) * (360 * spreadPercentage / 100) / 6; // Example adjustment
+  let maxSpread = ((Math.PI / 180) * ((360 * spreadPercentage) / 100)) / 6; // Example adjustment
 
   // Generate a random angle within the spread range
   let randomSpread = Math.random() * (maxSpread * 2) - maxSpread;
@@ -883,7 +915,7 @@ function addRandomSpread(direction, spreadPercentage) {
   // Normalize the new direction
   newDirection = newDirection % (2 * Math.PI);
   if (newDirection < 0) {
-      newDirection += 2 * Math.PI;
+    newDirection += 2 * Math.PI;
   }
 
   return newDirection;
