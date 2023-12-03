@@ -67,15 +67,14 @@ export class WeaponOverview {
   }
 }
 
-class ActorRow {
-  constructor(overview, owningActor, targetActor) {
-    this.overview = overview;
-    this.owningActor = owningActor;
-    this.targetActor = targetActor;
-    this.createRow();
+class EquipmentRow {
+  constructor({overviewDiv = null, equipmentActor = null} = {}) {
+    this.overviewDiv = overviewDiv;
+    this.equipmentActor = equipmentActor;
+    this.init();
   }
 
-  createRow() {
+  init() {
     this.table = document
       .getElementById('overviewTable')
       .getElementsByTagName('tbody')[0];
@@ -120,53 +119,27 @@ class ActorRow {
 
     setInterval(() => {
       if (actors[this.targetActor.ID]) {
-        this.updateDistance();
+        this.update();
       }
     }, 1000);
+
+    /// OLD ABOVE
+    /// NEW BELOG
+
   }
 
-  setHostile() {
-    this.row.classList.add('actor-hostile');
+  createRow() {
+    var newDiv = document.createElement('div');
+
+    // Step 3: Optional - Add content, attributes, styles, etc.
+    newDiv.innerHTML = this.equipmentActor.getName(); // Adding text content
+    newDiv.className = 'equipment-row'; // Setting a class name
+
+    newDiv.id = `${this.equipmentActor.id}-equipment-div-container`
   }
 
-  setFriendly() {
-    this.row.classList.add('actor-targeted');
-  }
+  update() {
 
-  setSelected() {
-    this.overview.clearLastSelected();
-    this.overview.selectedActorId = this.targetActor.ID;
-    this.row.classList.add('actor-selected');
-  }
-
-  select({ leftClick, rightClick, ctrl, shift, alt }) {
-    this.setSelected();
-
-    const selectedEvent = new CustomEvent('Overview:ContactSelected', {
-      detail: {
-        actor: this.targetActor,
-        leftClick,
-        rightClick,
-        ctrl,
-        shift,
-        alt,
-      },
-    });
-    document.dispatchEvent(selectedEvent);
-  }
-
-  updateDistance() {
-    this.distanceCell.innerHTML = this.targetActor.getDistance().toFixed(2);
-  }
-
-  remove() {
-    // If the removed row was selected, clear the selection
-    if (this.overview.selectedActorId === this.targetActor.ID) {
-      this.overview.selectedActorId = null;
-    }
-
-    this.row.remove();
-    delete actors[this.targetActor.ID];
   }
 }
 

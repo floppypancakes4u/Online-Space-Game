@@ -32,7 +32,6 @@ canvas {
   color: white;
 }
 
-
 .admin-controls > div {
   margin-bottom: 10px;
   padding: 5px;
@@ -161,3 +160,31 @@ th.sort-desc:after {
 /* .jsPanel-content {
   background-color: rgba(51, 51, 51, 0);
 } */
+
+/* Normal state */
+.equipment-row {
+  /* Your normal state styles here */
+  /* Example: */
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Selected state */
+.equipment-row.selected {
+  /* Styles for when the div is selected */
+  background-color: lightorange; /* Light orange background */
+  color: black; /* Optional: Change text color if needed */
+}
+
+.equipment-row::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%; /* Adjust this to represent progress */
+  height: 100%;
+  background: green; /* Color of your progress bar */
+  z-index: -1;
+}

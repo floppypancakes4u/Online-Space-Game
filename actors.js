@@ -123,6 +123,10 @@ export class Actor {
     });
   }
 
+  getName() {
+    return this.constructor.name;
+  }
+
   applyDamage(projectile) {
     //console.log("applyDamage", projectile)
     if (projectile.type == 'kinetic') {
