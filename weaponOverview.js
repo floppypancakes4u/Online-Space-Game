@@ -131,13 +131,24 @@ class EquipmentRow {
 
   createRow() {
     this.divContainer = document.createElement('div');
-
-    // Step 3: Optional - Add content, attributes, styles, etc.
-    this.divContainer.innerHTML = this.actor.getName(); // Adding text content
+    
     this.divContainer.className = 'equipment-row'; // Setting a class name
     this.divContainer.setAttribute("ActorID", `${this.actor.ID}`);
-
     this.divContainer.id = `${this.actor.ID}-equipment-div-container`;
+
+    
+    
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';    
+    progressBar.setAttribute("ActorID-recoil", `${this.actor.ID}`);
+    progressBar.id = `${this.actor.ID}-hardpoint-recoil`;
+    this.divContainer.appendChild(progressBar)
+    
+    
+    const content = document.createElement('div');
+    content.className = 'weapon-div-content';
+    content.innerHTML = this.actor.getName(); // Adding text content
+    this.divContainer.appendChild(content)
 
     return this.divContainer;
   }

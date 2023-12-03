@@ -443,7 +443,7 @@ export class ProjectileTurret extends WeaponHardpoint {
     )}-${Date.now()}`;
     this.x = x;
     this.y = y;
-    this.recoil = recoil;
+    this.recoilTime = recoil;
     this.amount = amount;
     this.range = range;
     this.accuracy = accuracy;
@@ -451,6 +451,8 @@ export class ProjectileTurret extends WeaponHardpoint {
     this.offsetY = offsetY;
     this.existsInWorld = existsInWorld;
     this.owningActor = owningActor;
+
+    this.recoilWaitTime = 0; // How long the weapon has been waiting until it can fire again. Counts down from recoilTime
 
     console.log(options);
   }
@@ -473,21 +475,22 @@ export class ProjectileTurret extends WeaponHardpoint {
   }
 
   setActive(active) {
-    if (active) {
-      if (this.activeEventHandler === null) {
-        this.activeEventHandler = setInterval(() => {
-          this.fireWeapon();
-        }, this.recoil * 1000);
+    // if (active) {
+    //   if (this.activeEventHandler === null) {
+    //     this.activeEventHandler = setInterval(() => {
+    //       this.fireWeapon();
+    //     }, this.recoil * 1000);
 
-        //console.log('Activated Turret');
-      }
-    } else {
-      if (this.activeEventHandler) {
-        clearInterval(this.activeEventHandler);
-        this.activeEventHandler = null;
-        //console.log('De-Activated Turret');
-      }
-    }
+    //     //console.log('Activated Turret');
+    //   }
+    // } else {
+    //   if (this.activeEventHandler) {
+    //     clearInterval(this.activeEventHandler);
+    //     this.activeEventHandler = null;
+    //     //console.log('De-Activated Turret');
+    //   } 
+    // }
+    this.isFiring = active;
   }
 
   fireWeapon() {
@@ -500,6 +503,26 @@ export class ProjectileTurret extends WeaponHardpoint {
       range: Math.min(this.range, this.owningActor.getRadarRange()),
       radarContacts: this.owningActor.radarContacts,
     });
+  }
+
+  getRemainingRecoil() {
+    return this.recoilWaitTime / this.recoilTime
+  }
+
+  checkIfFiring(delta) {
+    // Reduce our wait time. When it is 0, we can fire again.
+    this.recoilWaitTime = Math.max(0, this.recoilWaitTime - delta);
+
+    if (this.isFiring) {
+      if (this.recoilWaitTime == 0) {
+        this.recoilWaitTime = this.recoilTime;
+        this.fireWeapon();
+      }
+    }
+  }
+
+  customUpdate(delta) {
+    this.checkIfFiring(delta)
   }
 }
 
