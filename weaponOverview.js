@@ -11,10 +11,10 @@ export class WeaponOverview {
       theme: 'dark',
       headerLogo: '<i class="fad fa-home-heart ml-2"></i>',
       headerTitle: "Weapons",
-      headerToolbar: `<span class="text-sm">Weapons</span>`,
+      //headerToolbar: `<span class="text-sm">Weapons</span>`,
       position: {
-        my: 'right-top',
-        at: 'right-top',
+        my: 'left-top',
+        at: 'left-top',
       },
       // footerToolbar:
       //   '<span class="flex flex-grow">You can have a footer toolbar too</span>' +
@@ -126,7 +126,7 @@ class EquipmentRow {
     /// NEW BELOG
     this.overviewDiv.appendChild(this.createRow());
 
-    setTimeout(this.update, 50);
+    setInterval(() => { this.update() }, 50);
   }
 
   createRow() {
